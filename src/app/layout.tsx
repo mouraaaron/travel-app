@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { AppProviders } from "@/components/layout/app-providers";
+import { TopBar } from "@/components/layout/top-bar";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -15,7 +17,10 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`${inter.variable} font-sans antialiased`}>
-        {children}
+        <AppProviders>
+          <TopBar />
+          <main className="mx-auto max-w-6xl px-14 py-10">{children}</main>
+        </AppProviders>
       </body>
     </html>
   );
