@@ -60,7 +60,7 @@ function SearchResultsContent() {
       justification,
     });
     toast.success("Solicitação enviada para aprovação.");
-    router.push("/");
+    router.push("/requests");
   }
 
   function handleSelect(offer: Offer, evaluation: PolicyEvaluation) {

@@ -48,6 +48,11 @@ now points to `/`. Visual position in the nav (top-right) is unchanged.
   query params the old form used (`mode`, `origin`, `destination`,
   `departureAt`, `returnAt`, `cabinClass`).
 
+Submitting an offer on `/search/results` now redirects to `/requests`
+(the relocated dashboard) instead of `/` — this was a post-launch fix
+for a handoff that regressed when the dashboard moved off `/` in this
+round (`/search/results` wasn't otherwise touched by this redesign).
+
 ## Known, intentional limitations (not bugs)
 
 - **Passenger data isn't persisted or used yet.** Step 2's data is
