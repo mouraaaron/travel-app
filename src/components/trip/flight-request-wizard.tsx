@@ -20,7 +20,6 @@ export function FlightRequestWizard() {
     setStep(2);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- signature must match PassengerDetailsStep's onSubmit prop; the value isn't needed yet (see comment below).
   function handlePassengersSubmit(_values: PassengersFormValues) {
     // Passenger data is collected here (needed to issue a ticket later) but
     // isn't threaded into /search/results or persisted yet — there's no
