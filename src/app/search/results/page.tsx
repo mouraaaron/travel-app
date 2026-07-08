@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -28,7 +28,7 @@ function parseSearchParams(params: URLSearchParams): SearchParams | null {
   return null;
 }
 
-export default function SearchResultsPage() {
+function SearchResultsContent() {
   const router = useRouter();
   const rawParams = useSearchParams();
   const { addRequest } = useRequests();
@@ -36,6 +36,7 @@ export default function SearchResultsPage() {
     offer: Offer;
     evaluation: PolicyEvaluation;
   } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const params = useMemo(() => parseSearchParams(rawParams), [rawParams]);
 
@@ -48,6 +49,8 @@ export default function SearchResultsPage() {
   }, [params]);
 
   function submitRequest(offer: Offer, evaluation: PolicyEvaluation, justification?: string) {
+    if (submitting) return;
+    setSubmitting(true);
     addRequest({
       id: `req-${offer.id}-${offer.mode === "flight" ? offer.departureAt : offer.checkIn}`,
       createdAt: new Date(2026, 6, 8).toISOString(),
@@ -107,5 +110,15 @@ export default function SearchResultsPage() {
         }}
       />
     </div>
+  );
+}
+
+export default function SearchResultsPage() {
+  return (
+    <Suspense
+      fallback={<p className="text-sm text-muted-foreground">Carregando resultados...</p>}
+    >
+      <SearchResultsContent />
+    </Suspense>
   );
 }
