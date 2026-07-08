@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Minhas Solicitações" },
-  { href: "/search", label: "Buscar Viagem" },
+  { href: "/requests", label: "Minhas Solicitações" },
+  { href: "/", label: "Buscar Viagem" },
 ];
 
 export function TopBar() {
