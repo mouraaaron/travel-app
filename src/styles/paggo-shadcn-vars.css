@@ -10,8 +10,8 @@
  * directly. So overriding here is safe: it only affects shadcn primitives
  * we install in this prototype repo.
  *
- * Dark mode driven by `[data-theme="dark"]` on <html> (paired with tw-colors
- * in tailwind.config.cjs darkMode setting).
+ * Dark mode driven by `[data-theme="dark"]` on <html> (CSS selector toggles
+ * between the light and dark theme variable blocks below).
  */
 
 :root,
@@ -129,13 +129,10 @@
 }
 
 /* shadcn `bg-sidebar` / `text-sidebar-foreground` etc. utilities normally
- * come from `theme.extend.colors.sidebar` in Tailwind config. The Paggo
- * preset's `tw-colors` plugin (createThemes) replaces theme.colors at plugin
- * time, which prevents the local extend from merging — so Tailwind never
- * compiles those classes.
- *
- * We inject them directly here as plain CSS rules. They consume the
- * --sidebar-* HSL vars defined above, so dark/light theming still works.
+ * come from `theme.extend.colors.sidebar` in Tailwind config. Since these
+ * utilities are not part of the extended colors config, we inject them
+ * directly here as plain CSS rules instead. They consume the --sidebar-*
+ * HSL vars defined above, so dark/light theming via [data-theme] still works.
  *
  * This block is the canonical place to extend if you add more
  * sidebar-themed utilities (e.g., a sidebar-warning state).
@@ -157,8 +154,9 @@
 .data-\[active\=true\]\:text-sidebar-accent-foreground[data-active="true"] { color: hsl(var(--sidebar-accent-foreground)); }
 .focus-visible\:ring-sidebar-ring:focus-visible { --tw-ring-color: hsl(var(--sidebar-ring)); }
 
-/* Paggo brand gradient — same compile-issue workaround as the sidebar utilities
- * above. Used by primary buttons via `bg-brand-gradient` className. */
+/* Paggo brand gradient — injected directly as a CSS utility (not in the
+ * Tailwind colors config), same as the sidebar utilities above. Used by
+ * primary buttons via `bg-brand-gradient` className. */
 .bg-brand-gradient { background-image: var(--brand-gradient); }
 .hover\:bg-brand-gradient-hover:hover { background-image: var(--brand-gradient-hover); }
 
