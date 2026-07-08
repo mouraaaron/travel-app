@@ -6,15 +6,8 @@ import { Separator } from "@/components/ui/separator";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PolicyBadges } from "@/components/trip/policy-badges";
 import { RequestStatusBadge } from "@/components/trip/request-status-badge";
+import { formatCurrency, formatDate, offerTitle } from "@/lib/offer-format";
 import { useRequests } from "@/lib/requests-store";
-
-function formatCurrency(amount: number, currency: string): string {
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(amount);
-}
-
-function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(new Date(iso));
-}
 
 export default function RequestDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -35,11 +28,10 @@ export default function RequestDetailPage() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-2">
-        <CardTitle>
-          {offer.mode === "flight"
-            ? `${offer.airline} · ${offer.origin} → ${offer.destination}`
-            : `${offer.hotelName} · ${offer.city}`}
-        </CardTitle>
+        <div>
+          <CardTitle>{offerTitle(offer)}</CardTitle>
+          <p className="text-xs text-muted-foreground">{formatDate(request.createdAt)}</p>
+        </div>
         <RequestStatusBadge status={request.status} />
       </CardHeader>
       <CardContent className="flex flex-col gap-4">

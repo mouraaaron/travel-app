@@ -5,14 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PolicyBadges } from "@/components/trip/policy-badges";
 import { RequestStatusBadge } from "@/components/trip/request-status-badge";
+import { offerTitle, formatDate } from "@/lib/offer-format";
 import { useRequests } from "@/lib/requests-store";
-
-function offerTitle(request: ReturnType<typeof useRequests>["requests"][number]): string {
-  const { offer } = request;
-  return offer.mode === "flight"
-    ? `${offer.airline} · ${offer.origin} → ${offer.destination}`
-    : `${offer.hotelName} · ${offer.city}`;
-}
 
 export default function DashboardPage() {
   const { requests } = useRequests();
@@ -34,7 +28,10 @@ export default function DashboardPage() {
           <Link key={request.id} href={`/requests/${request.id}`}>
             <Card className="transition-colors hover:border-primary">
               <CardHeader className="flex flex-row items-center justify-between gap-2">
-                <CardTitle className="text-base">{offerTitle(request)}</CardTitle>
+                <div>
+                  <CardTitle className="text-base">{offerTitle(request.offer)}</CardTitle>
+                  <p className="text-xs text-muted-foreground">{formatDate(request.createdAt)}</p>
+                </div>
                 <RequestStatusBadge status={request.status} />
               </CardHeader>
               <CardContent>

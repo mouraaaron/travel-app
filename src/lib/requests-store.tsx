@@ -25,8 +25,11 @@ export function RequestsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) {
+    if (!raw) return;
+    try {
       dispatch({ type: "HYDRATE", payload: JSON.parse(raw) as TripRequest[] });
+    } catch {
+      // Corrupt/incompatible localStorage data — ignore and keep the initial empty state.
     }
   }, []);
 

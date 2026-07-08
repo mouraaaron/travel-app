@@ -52,7 +52,7 @@ function SearchResultsContent() {
     if (submitting) return;
     setSubmitting(true);
     addRequest({
-      id: `req-${offer.id}-${offer.mode === "flight" ? offer.departureAt : offer.checkIn}`,
+      id: `req-${offer.id}-${crypto.randomUUID()}`,
       createdAt: new Date(2026, 6, 8).toISOString(),
       offer,
       evaluation,
