@@ -150,6 +150,20 @@ describe("duffelPassengersSchema — infant responsibility", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("rejects when an adult claims responsibility for a non-existent passenger id", () => {
+    const result = duffelPassengersSchema.safeParse({
+      passengers: [{ ...adult, infantResponsibleFor: "pas-99" }, infant],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects when an infant passenger itself sets infantResponsibleFor", () => {
+    const result = duffelPassengersSchema.safeParse({
+      passengers: [adult, { ...infant, infantResponsibleFor: "pas-2" }],
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("toE164", () => {

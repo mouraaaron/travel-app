@@ -73,19 +73,54 @@ export const duffelPassengersSchema = z
   .object({ passengers: z.array(duffelPassengerSchema).min(1, "Informe ao menos um passageiro") })
   .refine(
     (d) => {
-      const infants = d.passengers.filter((p) => p.type === "infant_without_seat");
-      const responsibleIds = d.passengers
-        .map((p) => p.infantResponsibleFor)
-        .filter((v): v is string => Boolean(v));
-      const uniqueResponsible = new Set(responsibleIds);
-      return (
-        infants.every((inf) => responsibleIds.includes(inf.id)) &&
-        uniqueResponsible.size === responsibleIds.length
+      // Get all infants and build their id set
+      const infantIds = new Set(
+        d.passengers
+          .filter((p) => p.type === "infant_without_seat")
+          .map((p) => p.id)
       );
+
+      // Get all passenger ids for validation
+      const allPassengerIds = new Set(d.passengers.map((p) => p.id));
+
+      // Collect valid claims: from non-infant passengers claiming actual infants
+      const claimsByInfantId: Record<string, string> = {}; // infantId -> claimant passengerId
+
+      for (const passenger of d.passengers) {
+        // Check 1: Infants cannot make claims about responsibility
+        if (passenger.type === "infant_without_seat" && passenger.infantResponsibleFor) {
+          return false;
+        }
+
+        // Process claims from non-infants
+        if (passenger.infantResponsibleFor) {
+          const claimedId = passenger.infantResponsibleFor;
+
+          // Check 2: Claimed id must exist in passengers
+          if (!allPassengerIds.has(claimedId)) {
+            return false;
+          }
+
+          // Check 3: Claimed id must be an actual infant
+          if (!infantIds.has(claimedId)) {
+            return false;
+          }
+
+          // Check 4: No duplicate claims for the same infant
+          if (claimsByInfantId[claimedId]) {
+            return false;
+          }
+
+          claimsByInfantId[claimedId] = passenger.id;
+        }
+      }
+
+      // Check 5: All infants must be claimed exactly once
+      return infantIds.size === Object.keys(claimsByInfantId).length;
     },
     {
       message:
-        "Cada bebê precisa de exatamente um adulto responsável, e cada adulto pode ser responsável por no máximo um bebê",
+        "Cada bebê precisa de exatamente um adulto responsável, e referências devem ser válidas e únicas",
       path: ["passengers"],
     }
   );
