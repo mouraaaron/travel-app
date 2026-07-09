@@ -152,8 +152,14 @@ describe("duffelPassengersSchema — infant responsibility", () => {
   });
 
   it("rejects when an adult claims responsibility for a non-existent passenger id", () => {
+    // The real infant (pas-2) is validly claimed by a separate adult, isolating the
+    // dangling-id check from the "every infant must be claimed" check.
     const result = duffelPassengersSchema.safeParse({
-      passengers: [{ ...adult, infantResponsibleFor: "pas-99" }, infant],
+      passengers: [
+        { ...adult, id: "pas-1", infantResponsibleFor: "pas-2" },
+        { ...adult, id: "pas-3", infantResponsibleFor: "pas-99" },
+        infant,
+      ],
     });
     expect(result.success).toBe(false);
   });
