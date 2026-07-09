@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findAirportByCode, searchAirports } from "./airports";
+import { COUNTRIES, findAirportByCode, isInternational, searchAirports } from "./airports";
 
 describe("searchAirports", () => {
   it("returns both airports for a city with more than one", () => {
@@ -34,5 +34,38 @@ describe("findAirportByCode", () => {
 
   it("returns undefined for an unknown code", () => {
     expect(findAirportByCode("ZZZ")).toBeUndefined();
+  });
+});
+
+describe("isInternational", () => {
+  it("returns false for a Brazilian airport", () => {
+    expect(isInternational("GRU")).toBe(false);
+  });
+
+  it("returns true for a non-Brazilian airport", () => {
+    expect(isInternational("JFK")).toBe(true);
+  });
+
+  it("returns false for an unknown code (fail safe, treat as domestic)", () => {
+    expect(isInternational("ZZZ")).toBe(false);
+  });
+});
+
+describe("COUNTRIES", () => {
+  it("includes Brazil with dial code 55", () => {
+    const brazil = COUNTRIES.find((c) => c.iso2 === "BR");
+    expect(brazil).toEqual({ name: "Brasil", iso2: "BR", dialCode: "55" });
+  });
+
+  it("has at least 10 countries for the passport/phone dropdowns", () => {
+    expect(COUNTRIES.length).toBeGreaterThanOrEqual(10);
+  });
+});
+
+describe("extended CITIES coverage", () => {
+  it("resolves new airports added for the Duffel-shaped mock scenarios", () => {
+    expect(findAirportByCode("NRT")?.sublabel).toContain("Narita");
+    expect(findAirportByCode("CNF")?.sublabel).toContain("Confins");
+    expect(findAirportByCode("ABV")).toBeDefined();
   });
 });
