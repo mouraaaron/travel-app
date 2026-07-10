@@ -1,8 +1,8 @@
 import { Badge } from "@/components/ui/badge";
-import { getStatusBadge } from "@/lib/badge-variants";
-import type { RequestStatus } from "@/lib/types";
+import { getTravelRequestStatusBadge } from "@/lib/badge-variants";
+import type { TravelRequestStatus } from "@/lib/types";
 
-export function RequestStatusBadge({ status }: { status: RequestStatus }) {
-  const spec = getStatusBadge(status);
-  return <Badge variant={spec.variant}>{spec.label}</Badge>;
+export function RequestStatusBadge({ status }: { status: TravelRequestStatus }) {
+  const badge = getTravelRequestStatusBadge(status);
+  return <Badge variant={badge.variant}>{badge.label}</Badge>;
 }
