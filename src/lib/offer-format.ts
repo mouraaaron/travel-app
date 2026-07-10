@@ -14,6 +14,12 @@ export function formatDate(iso: string): string {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(new Date(iso));
 }
 
+export function formatDateTime(iso: string): string {
+  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeStyle: "short" }).format(
+    new Date(iso)
+  );
+}
+
 export function formatDuration(iso: string): string {
   const match = /PT(?:(\d+)H)?(?:(\d+)M)?/.exec(iso);
   if (!match) return iso;
