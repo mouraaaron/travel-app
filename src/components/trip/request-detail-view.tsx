@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -40,8 +41,13 @@ export function RequestDetailView({ request }: { request: TravelRequest }) {
 
   async function handleCancelConfirm() {
     setCancelling(true);
-    await fetch(`/api/requests/${request.id}/cancel`, { method: "POST" });
+    const response = await fetch(`/api/requests/${request.id}/cancel`, { method: "POST" });
+    const body = await response.json().catch(() => null);
     setCancelling(false);
+    if (!response.ok) {
+      toast.error(body?.error ?? "Não foi possível cancelar a solicitação.");
+      return;
+    }
     setCancelOpen(false);
     router.refresh();
   }

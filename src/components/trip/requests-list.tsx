@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plane, Plus } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { RequestStatusBadge } from "@/components/trip/request-status-badge";
@@ -38,8 +39,13 @@ export function RequestsList({ requests }: { requests: TravelRequest[] }) {
 
   async function handleCancel(id: string) {
     setCancellingId(id);
-    await fetch(`/api/requests/${id}/cancel`, { method: "POST" });
+    const response = await fetch(`/api/requests/${id}/cancel`, { method: "POST" });
+    const body = await response.json().catch(() => null);
     setCancellingId(null);
+    if (!response.ok) {
+      toast.error(body?.error ?? "Não foi possível cancelar a solicitação.");
+      return;
+    }
     router.refresh();
   }
 
