@@ -6,13 +6,13 @@ import { PencilLine, SearchX, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/components/ui/error-state";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { OfferCard } from "@/components/trip/offer-card";
-import { generateOffers } from "@/lib/mock-data";
 import { formatDate, getRouteLabel } from "@/lib/offer-format";
 import { evaluateDuffelOffer } from "@/lib/policy";
 import { useTripFlow } from "@/lib/trip-flow-store";
@@ -114,15 +114,41 @@ export default function ResultsPage() {
   const [onlyInPolicy, setOnlyInPolicy] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
+
   useEffect(() => {
     if (!criteria) return;
-    startLoadingOffers();
-    const timeout = setTimeout(() => {
-      setOffers(generateOffers(criteria));
-    }, 1200);
-    return () => clearTimeout(timeout);
+    let cancelled = false;
+
+    async function runSearch() {
+      startLoadingOffers();
+      setSearchError(null);
+      try {
+        const response = await fetch("/api/flights/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(criteria),
+        });
+        const body = await response.json();
+        if (!response.ok) {
+          throw new Error(body.error ?? "Não foi possível buscar voos agora.");
+        }
+        if (!cancelled) setOffers(body.offers as FlightOffer[]);
+      } catch (err) {
+        if (!cancelled) {
+          setOffers([]);
+          setSearchError(err instanceof Error ? err.message : "Não foi possível buscar voos agora.");
+        }
+      }
+    }
+
+    runSearch();
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [criteria]);
+  }, [criteria, retryKey]);
 
   const carriers = useMemo(() => Array.from(new Set(offers.map((o) => o.airline))), [offers]);
   const priceCeiling = useMemo(() => offers.reduce((max, o) => Math.max(max, o.totalAmount), 0), [offers]);
@@ -233,7 +259,13 @@ export default function ResultsPage() {
         </aside>
 
         <div className="flex flex-col gap-3.5">
-          {loadingOffers ? (
+          {searchError ? (
+            <ErrorState
+              title="Não foi possível buscar voos"
+              description={searchError}
+              onRetry={() => setRetryKey((k) => k + 1)}
+            />
+          ) : loadingOffers ? (
             Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-40 w-full rounded-lg" />)
           ) : filtered.length === 0 ? (
             <EmptyState
