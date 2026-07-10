@@ -102,6 +102,14 @@ describe("formatDuration", () => {
   it("handles zero minutes", () => {
     expect(formatDuration("PT2H0M")).toBe("2h 00min");
   });
+
+  it("handles hour-only durations", () => {
+    expect(formatDuration("PT4H")).toBe("4h 00min");
+  });
+
+  it("handles minute-only durations", () => {
+    expect(formatDuration("PT45M")).toBe("0h 45min");
+  });
 });
 
 describe("formatTimeRange", () => {
@@ -136,6 +144,22 @@ describe("formatStopsLabel", () => {
   it("returns an N escalas label for 3+ segments", () => {
     const segments = [buildSegment(), buildSegment({ id: "seg-2" }), buildSegment({ id: "seg-3" })];
     expect(formatStopsLabel(segments)).toBe("2 escalas");
+  });
+
+  it("handles minute overflow at 60-minute rounding boundary", () => {
+    // Layover of 1h 59m 45s = 1.99583 hours
+    // Math.round((1.99583 - 1) * 60) = Math.round(59.748) = 60
+    // Without the fix, this would be "1h 60min"
+    // With the fix, it should be "2h 00min"
+    const first = buildSegment({ arriving_at: "2026-08-10T16:15:00.000Z" });
+    const second = buildSegment({
+      id: "seg-2",
+      origin: { iata_code: "CNF", name: "Confins" },
+      destination: { iata_code: "GIG", name: "Galeão" },
+      departing_at: "2026-08-10T18:14:45.000Z",
+      arriving_at: "2026-08-10T19:30:00.000Z",
+    });
+    expect(formatStopsLabel([first, second])).toBe("1 escala em CNF (2h 00min)");
   });
 });
 

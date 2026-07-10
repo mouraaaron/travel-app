@@ -15,10 +15,10 @@ export function formatDate(iso: string): string {
 }
 
 export function formatDuration(iso: string): string {
-  const match = /PT(\d+)H(\d+)M/.exec(iso);
+  const match = /PT(?:(\d+)H)?(?:(\d+)M)?/.exec(iso);
   if (!match) return iso;
-  const hours = match[1];
-  const minutes = match[2].padStart(2, "0");
+  const hours = match[1] ? match[1] : "0";
+  const minutes = (match[2] ? match[2] : "0").padStart(2, "0");
   return `${hours}h ${minutes}min`;
 }
 
@@ -31,11 +31,6 @@ export function formatTimeRange(departingAt: string, arrivingAt: string): string
   return `${formatter.format(new Date(departingAt))} → ${formatter.format(new Date(arrivingAt))}`;
 }
 
-function segmentDurationHours(segment: OfferSegment): number {
-  const match = /PT(\d+)H(\d+)M/.exec(segment.duration);
-  return match ? Number(match[1]) + Number(match[2]) / 60 : 0;
-}
-
 export function formatStopsLabel(segments: OfferSegment[]): string {
   if (segments.length <= 1) return "Direto";
   if (segments.length === 2) {
@@ -43,8 +38,12 @@ export function formatStopsLabel(segments: OfferSegment[]): string {
     const layoverMs =
       new Date(segments[1].departing_at).getTime() - new Date(segments[0].arriving_at).getTime();
     const layoverHours = layoverMs / (1000 * 60 * 60);
-    const wholeHours = Math.floor(layoverHours);
-    const minutes = Math.round((layoverHours - wholeHours) * 60);
+    let wholeHours = Math.floor(layoverHours);
+    let minutes = Math.round((layoverHours - wholeHours) * 60);
+    if (minutes === 60) {
+      wholeHours += 1;
+      minutes = 0;
+    }
     return `1 escala em ${layoverAirport} (${wholeHours}h ${minutes.toString().padStart(2, "0")}min)`;
   }
   return `${segments.length - 1} escalas`;
