@@ -1,6 +1,15 @@
-import type { PolicyEvaluation, PolicyFlag, RequestStatus } from "./types";
+import type { DuffelPolicyEvaluation } from "./policy";
+import type { PolicyEvaluation, PolicyFlag, RequestStatus, TravelRequestEvent, TravelRequestStatus } from "./types";
 
-export type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
+export type BadgeVariant =
+  | "default"
+  | "secondary"
+  | "destructive"
+  | "outline"
+  | "success"
+  | "warning"
+  | "info"
+  | "magic";
 
 export interface BadgeSpec {
   label: string;
@@ -32,4 +41,47 @@ const STATUS_BADGES: Record<RequestStatus, BadgeSpec> = {
 
 export function getStatusBadge(status: RequestStatus): BadgeSpec {
   return STATUS_BADGES[status];
+}
+
+export function getDuffelPolicyBadge(evaluation: DuffelPolicyEvaluation): BadgeSpec {
+  return evaluation.compliant
+    ? { label: "Dentro da política", variant: "success" }
+    : { label: "Fora da política", variant: "warning" };
+}
+
+export function getDuffelFlagBadges(evaluation: DuffelPolicyEvaluation): BadgeSpec[] {
+  const badges: BadgeSpec[] = [];
+  if (evaluation.flags.international_travel) {
+    badges.push({ label: "Internacional", variant: "info" });
+  }
+  if (evaluation.flags.cost_above_threshold) {
+    badges.push({ label: "Custo acima do teto", variant: "magic" });
+  }
+  return badges;
+}
+
+const TRAVEL_REQUEST_STATUS_BADGES: Record<TravelRequestStatus, BadgeSpec> = {
+  pending_admin: { label: "Aguardando aprovação", variant: "outline" },
+  approved: { label: "Aprovada", variant: "success" },
+  rejected: { label: "Rejeitada", variant: "destructive" },
+  needs_review: { label: "Requer revisão", variant: "warning" },
+  confirmed: { label: "Confirmada", variant: "info" },
+  cancelled: { label: "Cancelada", variant: "secondary" },
+};
+
+export function getTravelRequestStatusBadge(status: TravelRequestStatus): BadgeSpec {
+  return TRAVEL_REQUEST_STATUS_BADGES[status];
+}
+
+const TIMELINE_LABELS: Record<TravelRequestEvent["kind"], string> = {
+  created: "Criada por você",
+  approved: "Aprovada por Travel Admin",
+  rejected: "Rejeitada por Travel Admin",
+  needs_review: "Marcada para revisão",
+  confirmed: "Reserva confirmada",
+  cancelled: "Cancelada",
+};
+
+export function getTravelRequestTimelineLabel(kind: TravelRequestEvent["kind"]): string {
+  return TIMELINE_LABELS[kind];
 }
