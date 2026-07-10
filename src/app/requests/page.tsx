@@ -7,7 +7,7 @@ import { Plane, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { RequestStatusBadge } from "@/components/trip/request-status-badge";
-import { formatCurrency, formatDate } from "@/lib/offer-format";
+import { formatCurrency, formatDate, getRouteLabel } from "@/lib/offer-format";
 import { useTravelRequests } from "@/lib/requests-store";
 import type { TravelRequestStatus } from "@/lib/types";
 
@@ -77,8 +77,7 @@ export default function RequestsPage() {
         <div className="flex flex-col divide-y divide-border rounded-md border border-border">
           {filtered.map((request) => {
             const snapshot = request.selected_offer_snapshot;
-            const origin = snapshot.slices[0]?.origin ?? "";
-            const destination = snapshot.slices.at(-1)?.destination ?? "";
+            const { origin, destination } = getRouteLabel(snapshot.slices);
             return (
               <div
                 key={request.id}

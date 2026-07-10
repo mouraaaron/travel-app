@@ -17,7 +17,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PolicyBadges } from "@/components/trip/policy-badges";
 import { RequestStatusBadge } from "@/components/trip/request-status-badge";
 import { getTravelRequestTimelineLabel } from "@/lib/badge-variants";
-import { formatCurrency, formatDate, formatDateTime } from "@/lib/offer-format";
+import { formatCurrency, formatDate, formatDateTime, getRouteLabel } from "@/lib/offer-format";
 import { maskEmail, maskGivenName, maskPhone } from "@/lib/passenger-masking";
 import { useTravelRequests } from "@/lib/requests-store";
 
@@ -51,6 +51,7 @@ export default function RequestDetailPage() {
 
   const snapshot = request.selected_offer_snapshot;
   const rejectionEvent = [...request.events].reverse().find((event) => event.kind === "rejected");
+  const { origin: routeOrigin, destination: routeDestination } = getRouteLabel(snapshot.slices);
 
   function handleCancelConfirm() {
     if (!request) return;
@@ -70,7 +71,7 @@ export default function RequestDetailPage() {
 
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-xl font-semibold text-foreground">
-          {snapshot.slices[0]?.origin} → {snapshot.slices.at(-1)?.destination}
+          {routeOrigin} → {routeDestination}
           {snapshot.slices.length > 1 ? " (ida e volta)" : ""}
         </h1>
         <RequestStatusBadge status={request.status} />

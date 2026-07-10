@@ -13,7 +13,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { OfferCard } from "@/components/trip/offer-card";
 import { generateOffers } from "@/lib/mock-data";
-import { formatDate } from "@/lib/offer-format";
+import { formatDate, getRouteLabel } from "@/lib/offer-format";
 import { evaluateDuffelOffer } from "@/lib/policy";
 import { useTripFlow } from "@/lib/trip-flow-store";
 import type { FlightOffer } from "@/lib/types";
@@ -159,8 +159,7 @@ export default function ResultsPage() {
 
   const firstSlice = criteria.slices[0];
   const lastSlice = criteria.slices[criteria.slices.length - 1];
-  const isRoundTrip = criteria.slices.length === 2 && lastSlice.destination === firstSlice.origin;
-  const displayDestination = isRoundTrip ? firstSlice.destination : lastSlice.destination;
+  const { origin: displayOrigin, destination: displayDestination } = getRouteLabel(criteria.slices);
   const passengerCount = criteria.passengers.length;
 
   function handleSelect(offer: FlightOffer) {
@@ -191,7 +190,7 @@ export default function ResultsPage() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold text-foreground">
-            {firstSlice.origin} → {displayDestination}
+            {displayOrigin} → {displayDestination}
           </h1>
           <p className="text-sm text-muted-foreground">
             {formatDate(firstSlice.departure_date)}

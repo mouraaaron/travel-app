@@ -57,6 +57,18 @@ export function formatStopsLabel(segments: OfferSegment[]): string {
   return `${segments.length - 1} escalas`;
 }
 
+export function getRouteLabel(
+  slices: Array<{ origin: string; destination: string }>
+): { origin: string; destination: string } {
+  const first = slices[0];
+  const last = slices[slices.length - 1];
+  const isRoundTrip = slices.length === 2 && last?.destination === first?.origin;
+  return {
+    origin: first?.origin ?? "",
+    destination: isRoundTrip ? (first?.destination ?? "") : (last?.destination ?? ""),
+  };
+}
+
 export function formatBaggageSummary(segments: OfferSegment[]): string {
   const checkedCount = segments.reduce((max, segment) => {
     const checked = segment.baggages.find((b) => b.type === "checked");

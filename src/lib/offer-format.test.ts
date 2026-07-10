@@ -6,6 +6,7 @@ import {
   formatDuration,
   formatStopsLabel,
   formatTimeRange,
+  getRouteLabel,
   offerTitle,
 } from "./offer-format";
 import type { FlightOffer, StayOffer, OfferSegment } from "./types";
@@ -170,6 +171,30 @@ describe("formatStopsLabel", () => {
       arriving_at: "2026-08-10T19:30:00.000Z",
     });
     expect(formatStopsLabel([first, second])).toBe("1 escala em CNF (2h 00min)");
+  });
+});
+
+describe("getRouteLabel", () => {
+  it("returns the real destination for a round-trip (2 slices looping back to origin)", () => {
+    const slices = [
+      { origin: "GRU", destination: "GIG" },
+      { origin: "GIG", destination: "GRU" },
+    ];
+    expect(getRouteLabel(slices)).toEqual({ origin: "GRU", destination: "GIG" });
+  });
+
+  it("returns the destination for a one-way (single slice)", () => {
+    const slices = [{ origin: "GRU", destination: "JFK" }];
+    expect(getRouteLabel(slices)).toEqual({ origin: "GRU", destination: "JFK" });
+  });
+
+  it("returns the last slice's destination for a multi-city itinerary that doesn't loop back", () => {
+    const slices = [
+      { origin: "GRU", destination: "GIG" },
+      { origin: "GIG", destination: "CNF" },
+      { origin: "CNF", destination: "SSA" },
+    ];
+    expect(getRouteLabel(slices)).toEqual({ origin: "GRU", destination: "SSA" });
   });
 });
 
