@@ -4,16 +4,23 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ClipboardList, Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SignOutButton } from "./sign-out-button";
 
 const NAV_ITEMS = [
   { href: "/", label: "Nova viagem", icon: Plane },
   { href: "/requests", label: "Minhas solicitações", icon: ClipboardList },
 ] as const;
 
-const CURRENT_USER = { name: "Aaron Moura", initials: "AM" };
+function initialsFromName(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/);
+  const first = parts[0]?.[0] ?? "";
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+  return (first + last).toUpperCase();
+}
 
-export function AppSidebar() {
+export function AppSidebar({ fullName }: { fullName: string }) {
   const pathname = usePathname();
+  const initials = initialsFromName(fullName);
 
   return (
     <>
@@ -40,11 +47,14 @@ export function AppSidebar() {
             );
           })}
         </nav>
-        <div className="flex items-center gap-3 border-t border-sidebar-border px-6 py-4">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-            {CURRENT_USER.initials}
-          </span>
-          <span className="text-sm font-medium">{CURRENT_USER.name}</span>
+        <div className="flex flex-col gap-3 border-t border-sidebar-border px-6 py-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+              {initials}
+            </span>
+            <span className="text-sm font-medium">{fullName}</span>
+          </div>
+          <SignOutButton />
         </div>
       </aside>
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 text-sidebar-foreground lg:hidden">
@@ -64,7 +74,7 @@ export function AppSidebar() {
           ))}
         </nav>
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-          {CURRENT_USER.initials}
+          {initials}
         </span>
       </header>
     </>
