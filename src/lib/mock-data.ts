@@ -252,7 +252,7 @@ function buildSlice(
   fareBrand: string,
   seed: number
 ): OfferSlice {
-  const departingAt = new Date(`${departureDate}T${8 + (seed % 10)}:${seed % 2 === 0 ? "00" : "30"}:00.000Z`);
+  const departingAt = new Date(`${departureDate}T${String(8 + (seed % 10)).padStart(2, "0")}:${seed % 2 === 0 ? "00" : "30"}:00.000Z`);
   const hasStop = seed % 3 === 0;
   const segments: OfferSegment[] = hasStop
     ? [

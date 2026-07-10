@@ -68,4 +68,47 @@ describe("generateOffers", () => {
       offers.some((o) => new Date(o.expiresAt!).getTime() - now < 10 * 60 * 1000)
     ).toBe(true);
   });
+
+  it("regression: does not crash with invalid ISO timestamps on GRU->GIG with 2026-08-05 departure", () => {
+    // This test reproduces the bug where single-digit hours (8-9) produced invalid ISO-8601 strings
+    const offers = generateOffers(
+      criteria({ slices: [{ origin: "GRU", destination: "GIG", departure_date: "2026-08-05" }] })
+    );
+    expect(offers.length).toBeGreaterThan(0);
+
+    // Verify all timestamps in offers are valid ISO-8601 strings that can be parsed and converted back
+    offers.forEach((offer) => {
+      // departureAt is required
+      const depDate = new Date(offer.departureAt);
+      expect(depDate.toString()).not.toBe("Invalid Date");
+      expect(() => depDate.toISOString()).not.toThrow();
+
+      // returnAt is optional (only in round-trip offers)
+      if (offer.returnAt) {
+        const retDate = new Date(offer.returnAt);
+        expect(retDate.toString()).not.toBe("Invalid Date");
+        expect(() => retDate.toISOString()).not.toThrow();
+      }
+
+      // expiresAt is optional
+      if (offer.expiresAt) {
+        const expDate = new Date(offer.expiresAt);
+        expect(expDate.toString()).not.toBe("Invalid Date");
+        expect(() => expDate.toISOString()).not.toThrow();
+      }
+
+      // Verify all segment timestamps in slices are valid
+      offer.slices?.forEach((slice) => {
+        slice.segments.forEach((segment) => {
+          const depSegDate = new Date(segment.departing_at);
+          expect(depSegDate.toString()).not.toBe("Invalid Date");
+          expect(() => depSegDate.toISOString()).not.toThrow();
+
+          const arrSegDate = new Date(segment.arriving_at);
+          expect(arrSegDate.toString()).not.toBe("Invalid Date");
+          expect(() => arrSegDate.toISOString()).not.toThrow();
+        });
+      });
+    });
+  });
 });
