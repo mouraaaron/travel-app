@@ -11,7 +11,9 @@ export function formatCurrency(amount: number, currency: string): string {
 }
 
 export function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(new Date(iso));
+  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeZone: "UTC" }).format(
+    new Date(iso)
+  );
 }
 
 export function formatDateTime(iso: string): string {

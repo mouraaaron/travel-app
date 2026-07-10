@@ -61,10 +61,20 @@ describe("formatCurrency", () => {
 describe("formatDate", () => {
   it("formats an ISO date string using pt-BR medium date style", () => {
     expect(formatDate("2026-08-10T22:30:00.000Z")).toBe(
-      new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(
+      new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeZone: "UTC" }).format(
         new Date("2026-08-10T22:30:00.000Z")
       )
     );
+  });
+
+  it("renders a date-only ISO string as its own calendar day regardless of local timezone", () => {
+    // Regression test: new Date("2026-08-10") parses as UTC midnight. Without pinning
+    // timeZone: "UTC" in the formatter, any timezone behind UTC (e.g. Brazil, UTC-3)
+    // would render this as "9 de ago." instead of "10 de ago.".
+    const result = formatDate("2026-08-10");
+    expect(result).toBe("10 de ago. de 2026");
+    expect(result).not.toContain("9 de ago");
+    expect(result).not.toContain("09 de ago");
   });
 });
 
