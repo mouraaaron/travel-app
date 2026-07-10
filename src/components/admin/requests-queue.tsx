@@ -31,14 +31,19 @@ export function RequestsQueue({ requests }: { requests: AdminQueueRequest[] }) {
 
   async function handleQuickApprove(id: string) {
     setApprovingId(id);
-    const response = await fetch(`/api/admin/requests/${id}/approve`, { method: "POST" });
-    const body = await response.json().catch(() => null);
-    setApprovingId(null);
-    if (!response.ok) {
-      toast.error(body?.error ?? "Não foi possível aprovar a solicitação.");
-      return;
+    try {
+      const response = await fetch(`/api/admin/requests/${id}/approve`, { method: "POST" });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        toast.error(body?.error ?? "Não foi possível aprovar a solicitação.");
+        return;
+      }
+      router.refresh();
+    } catch {
+      toast.error("Não foi possível aprovar a solicitação.");
+    } finally {
+      setApprovingId(null);
     }
-    router.refresh();
   }
 
   return (
