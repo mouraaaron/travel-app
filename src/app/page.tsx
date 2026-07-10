@@ -1,5 +1,5 @@
-import { FlightRequestWizard } from "@/components/trip/flight-request-wizard";
+import { SearchCriteriaForm } from "@/components/trip/search-criteria-form";
 
 export default function HomePage() {
-  return <FlightRequestWizard />;
+  return <SearchCriteriaForm />;
 }
