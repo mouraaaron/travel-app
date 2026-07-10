@@ -13,8 +13,9 @@ import { useTripFlow } from "@/lib/trip-flow-store";
 export default function OfferDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { offers, selectOffer } = useTripFlow();
+  const { offers, selectOffer, criteria } = useTripFlow();
   const offer = offers.find((o) => o.id === id);
+  const passengerCount = criteria?.passengers?.length ?? 1;
 
   if (!offer) {
     return (
@@ -162,7 +163,9 @@ export default function OfferDetailPage() {
             </div>
             <PolicyBadges evaluation={evaluation} />
             <div>
-              <p className="text-xs text-muted-foreground">Total para 1 passageiro</p>
+              <p className="text-xs text-muted-foreground">
+                Total para {passengerCount} passageiro{passengerCount !== 1 ? "s" : ""}
+              </p>
               <p className="text-2xl font-semibold text-foreground">
                 {formatCurrency(offer.totalAmount, offer.currency)}
               </p>
