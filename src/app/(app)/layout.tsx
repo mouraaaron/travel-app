@@ -10,7 +10,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <>
-      <AppSidebar fullName={profile.fullName} />
+      <AppSidebar fullName={profile.fullName} role={profile.role} />
       <main className="min-h-screen lg:pl-[248px]">
         <div className="px-6 pb-16 pt-8">{children}</div>
       </main>

@@ -2,18 +2,35 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardList, Plane } from "lucide-react";
+import {
+  ClipboardCheck,
+  ClipboardList,
+  FileText,
+  LayoutDashboard,
+  Plane,
+  Settings,
+  Users,
+} from "lucide-react";
 import { cn, initialsFromName } from "@/lib/utils";
 import { SignOutButton } from "./sign-out-button";
 
-const NAV_ITEMS = [
+const EMPLOYEE_NAV_ITEMS = [
   { href: "/", label: "Nova viagem", icon: Plane },
   { href: "/requests", label: "Minhas solicitações", icon: ClipboardList },
 ] as const;
 
-export function AppSidebar({ fullName }: { fullName: string }) {
+const ADMIN_NAV_ITEMS = [
+  { href: "/admin", label: "Painel", icon: LayoutDashboard },
+  { href: "/admin/requests", label: "Solicitações", icon: ClipboardCheck },
+  { href: "/admin/employees", label: "Funcionários", icon: Users },
+  { href: "/admin/reports", label: "Relatórios", icon: FileText },
+  { href: "/admin/settings", label: "Configurações", icon: Settings },
+] as const;
+
+export function AppSidebar({ fullName, role }: { fullName: string; role: "employee" | "admin" }) {
   const pathname = usePathname();
   const initials = initialsFromName(fullName);
+  const navItems = role === "admin" ? ADMIN_NAV_ITEMS : EMPLOYEE_NAV_ITEMS;
 
   return (
     <>
@@ -22,7 +39,7 @@ export function AppSidebar({ fullName }: { fullName: string }) {
           <img src="/paggo-logo-light.svg" alt="Paggo" className="h-6 w-auto" />
         </div>
         <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const active = pathname === item.href;
             const Icon = item.icon;
             return (
@@ -53,7 +70,7 @@ export function AppSidebar({ fullName }: { fullName: string }) {
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 text-sidebar-foreground lg:hidden">
         <img src="/paggo-icon.svg" alt="Paggo" className="h-6 w-6" />
         <nav className="flex items-center gap-4">
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
