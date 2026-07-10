@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,15 +21,13 @@ import {
 } from "@/lib/corporate-schema";
 import { formatCurrency, formatDate } from "@/lib/offer-format";
 import { evaluateDuffelOffer } from "@/lib/policy";
-import { useTravelRequests } from "@/lib/requests-store";
 import { useTripFlow } from "@/lib/trip-flow-store";
-import type { TravelRequest } from "@/lib/types";
 
 export default function ReviewPage() {
   const router = useRouter();
   const { criteria, selectedOffer: offer, passengers, corporate, reset } = useTripFlow();
-  const { addTravelRequest } = useTravelRequests();
   const evaluation = offer ? evaluateDuffelOffer(offer) : null;
+  const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<CorporateContextFormValues>({
     resolver: zodResolver(corporateContextSchema),
@@ -54,15 +53,11 @@ export default function ReviewPage() {
     );
   }
 
-  function onSubmit(values: CorporateContextFormValues) {
+  async function onSubmit(values: CorporateContextFormValues) {
     if (!criteria || !offer || !passengers || !evaluation) return;
     const now = new Date().toISOString();
-    const request: TravelRequest = {
-      id: `req_${Math.random().toString(36).slice(2, 10)}`,
-      organization_id: "org-paggo",
-      employee_id: "emp-aaron-moura",
-      created_at: now,
-      status: "pending_admin",
+
+    const payload = {
       search_criteria: criteria,
       selected_offer_snapshot: {
         offer_id: offer.id,
@@ -106,10 +101,23 @@ export default function ReviewPage() {
       events: [{ at: now, kind: "created" }],
     };
 
-    addTravelRequest(request);
+    setSubmitting(true);
+    const response = await fetch("/api/requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const body = await response.json();
+    setSubmitting(false);
+
+    if (!response.ok) {
+      toast.error(body.error ?? "Não foi possível enviar a solicitação.");
+      return;
+    }
+
     reset();
     toast.success("Solicitação enviada. Aguardando aprovação do Travel Admin.");
-    router.push(`/requests/${request.id}`);
+    router.push(`/requests/${body.request.id}`);
   }
 
   return (
@@ -288,8 +296,13 @@ export default function ReviewPage() {
             <Button type="button" variant="link" onClick={() => router.push(`/request/passengers/${offer.id}`)}>
               Voltar
             </Button>
-            <Button type="submit" size="lg" className="bg-brand-gradient hover:bg-brand-gradient-hover">
-              Enviar solicitação
+            <Button
+              type="submit"
+              size="lg"
+              disabled={submitting}
+              className="bg-brand-gradient hover:bg-brand-gradient-hover"
+            >
+              {submitting ? "Enviando..." : "Enviar solicitação"}
             </Button>
           </div>
         </form>
