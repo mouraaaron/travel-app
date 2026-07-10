@@ -8,8 +8,8 @@ import {
   useReducer,
   type ReactNode,
 } from "react";
-import { requestsReducer } from "./requests-reducer";
-import type { TripRequest } from "./types";
+import { requestsReducer, travelRequestsReducer } from "./requests-reducer";
+import type { TravelRequest, TripRequest } from "./types";
 
 const STORAGE_KEY = "travel-app.requests.v1";
 
@@ -54,6 +54,55 @@ export function useRequests(): RequestsContextValue {
   const ctx = useContext(RequestsContext);
   if (!ctx) {
     throw new Error("useRequests must be used within a RequestsProvider");
+  }
+  return ctx;
+}
+
+const TRAVEL_STORAGE_KEY = "travel-app.travel-requests.v1";
+
+interface TravelRequestsContextValue {
+  travelRequests: TravelRequest[];
+  addTravelRequest: (request: TravelRequest) => void;
+  cancelTravelRequest: (id: string, at: string) => void;
+}
+
+const TravelRequestsContext = createContext<TravelRequestsContextValue | null>(null);
+
+export function TravelRequestsProvider({ children }: { children: ReactNode }) {
+  const [travelRequests, dispatch] = useReducer(travelRequestsReducer, []);
+
+  useEffect(() => {
+    const raw = window.localStorage.getItem(TRAVEL_STORAGE_KEY);
+    if (!raw) return;
+    try {
+      dispatch({ type: "HYDRATE_TRAVEL", payload: JSON.parse(raw) as TravelRequest[] });
+    } catch {
+      // Corrupt/incompatible localStorage data — ignore and keep the initial empty state.
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(TRAVEL_STORAGE_KEY, JSON.stringify(travelRequests));
+  }, [travelRequests]);
+
+  const value = useMemo<TravelRequestsContextValue>(
+    () => ({
+      travelRequests,
+      addTravelRequest: (request) => dispatch({ type: "ADD_TRAVEL_REQUEST", payload: request }),
+      cancelTravelRequest: (id, at) => dispatch({ type: "CANCEL_TRAVEL_REQUEST", payload: { id, at } }),
+    }),
+    [travelRequests]
+  );
+
+  return (
+    <TravelRequestsContext.Provider value={value}>{children}</TravelRequestsContext.Provider>
+  );
+}
+
+export function useTravelRequests(): TravelRequestsContextValue {
+  const ctx = useContext(TravelRequestsContext);
+  if (!ctx) {
+    throw new Error("useTravelRequests must be used within a TravelRequestsProvider");
   }
   return ctx;
 }
