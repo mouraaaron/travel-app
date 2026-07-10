@@ -3,20 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ClipboardList, Plane } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, initialsFromName } from "@/lib/utils";
 import { SignOutButton } from "./sign-out-button";
 
 const NAV_ITEMS = [
   { href: "/", label: "Nova viagem", icon: Plane },
   { href: "/requests", label: "Minhas solicitações", icon: ClipboardList },
 ] as const;
-
-function initialsFromName(fullName: string): string {
-  const parts = fullName.trim().split(/\s+/);
-  const first = parts[0]?.[0] ?? "";
-  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
-  return (first + last).toUpperCase();
-}
 
 export function AppSidebar({ fullName }: { fullName: string }) {
   const pathname = usePathname();
