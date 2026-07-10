@@ -92,7 +92,8 @@ export default function PassengersPage() {
   });
 
   const { fields } = useFieldArray({ control: form.control, name: "passengers" });
-  const infants = form.watch("passengers").filter((p) => p.type === "infant_without_seat");
+  const allPassengers = form.watch("passengers");
+  const infants = allPassengers.filter((p) => p.type === "infant_without_seat");
 
   if (!criteria || !offer) {
     return (
@@ -373,25 +374,43 @@ export default function PassengersPage() {
                           <FormField
                             control={form.control}
                             name={`passengers.${index}.infantResponsibleFor`}
-                            render={({ field: responsibleField }) => (
-                              <FormItem className="max-w-xs">
-                                <FormLabel>Responsável por qual bebê?</FormLabel>
-                                <Select value={responsibleField.value ?? ""} onValueChange={responsibleField.onChange}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Nenhum" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {infants.map((inf) => (
-                                      <SelectItem key={inf.id} value={inf.id}>
-                                        Passageiro {form.getValues("passengers").findIndex((p) => p.id === inf.id) + 1}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </FormItem>
-                            )}
+                            render={({ field: responsibleField }) => {
+                              const claimedByOthers = new Set(
+                                allPassengers
+                                  .filter((p, i) => i !== index && p.infantResponsibleFor)
+                                  .map((p) => p.infantResponsibleFor)
+                              );
+                              const availableInfants = infants.filter(
+                                (inf) => inf.id === responsibleField.value || !claimedByOthers.has(inf.id)
+                              );
+                              return (
+                                <FormItem className="max-w-xs">
+                                  <FormLabel>Responsável por qual bebê?</FormLabel>
+                                  <Select
+                                    value={responsibleField.value ?? "none"}
+                                    onValueChange={(value) =>
+                                      responsibleField.onChange(value === "none" ? undefined : value)
+                                    }
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Nenhum" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="none">Nenhum</SelectItem>
+                                      {availableInfants.map((inf) => (
+                                        <SelectItem key={inf.id} value={inf.id}>
+                                          Passageiro{" "}
+                                          {form.getValues("passengers").findIndex((p) => p.id === inf.id) + 1}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              );
+                            }}
                           />
                         ) : null}
                       </AccordionContent>
