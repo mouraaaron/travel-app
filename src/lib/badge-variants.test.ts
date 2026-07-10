@@ -9,7 +9,7 @@ import {
   getTravelRequestTimelineLabel,
 } from "./badge-variants";
 import type { DuffelPolicyEvaluation } from "./policy";
-import type { PolicyEvaluation, TravelRequestEvent } from "./types";
+import type { PolicyEvaluation } from "./types";
 
 describe("getPolicyBadge", () => {
   it("labels a compliant evaluation as within policy", () => {
