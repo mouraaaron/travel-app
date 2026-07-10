@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toTravelRequest, type RequestRow } from "./requests-mapper";
+import { toAdminQueueRequest, toTravelRequest, type RequestRow } from "./requests-mapper";
 
 const ROW: RequestRow = {
   id: "req_1",
@@ -49,5 +49,18 @@ describe("toTravelRequest", () => {
     expect(result.corporate.cost_center).toBe("Engenharia");
     expect(result.events).toHaveLength(1);
     expect(result.selected_offer_snapshot.owner.name).toBe("LATAM");
+  });
+});
+
+describe("toAdminQueueRequest", () => {
+  it("adds the employee's name from the joined profiles row", () => {
+    const result = toAdminQueueRequest({ ...ROW, profiles: { full_name: "Fernanda Lima" } });
+    expect(result.employeeName).toBe("Fernanda Lima");
+    expect(result.status).toBe("pending_admin");
+  });
+
+  it("falls back to a generic label when there is no joined profile", () => {
+    const result = toAdminQueueRequest({ ...ROW, profiles: null });
+    expect(result.employeeName).toBe("Funcionário");
   });
 });

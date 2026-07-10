@@ -31,3 +31,18 @@ export function toTravelRequest(row: RequestRow): TravelRequest {
     events: row.events,
   };
 }
+
+export interface RequestRowWithEmployee extends RequestRow {
+  profiles: { full_name: string } | null;
+}
+
+export interface AdminQueueRequest extends TravelRequest {
+  employeeName: string;
+}
+
+export function toAdminQueueRequest(row: RequestRowWithEmployee): AdminQueueRequest {
+  return {
+    ...toTravelRequest(row),
+    employeeName: row.profiles?.full_name ?? "Funcionário",
+  };
+}
