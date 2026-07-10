@@ -6,6 +6,7 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
   type ReactNode,
 } from "react";
 import { requestsReducer, travelRequestsReducer } from "./requests-reducer";
@@ -70,18 +71,22 @@ const TravelRequestsContext = createContext<TravelRequestsContextValue | null>(n
 
 export function TravelRequestsProvider({ children }: { children: ReactNode }) {
   const [travelRequests, dispatch] = useReducer(travelRequestsReducer, []);
+  const hasHydrated = useRef(false);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(TRAVEL_STORAGE_KEY);
-    if (!raw) return;
-    try {
-      dispatch({ type: "HYDRATE_TRAVEL", payload: JSON.parse(raw) as TravelRequest[] });
-    } catch {
-      // Corrupt/incompatible localStorage data — ignore and keep the initial empty state.
+    if (raw) {
+      try {
+        dispatch({ type: "HYDRATE_TRAVEL", payload: JSON.parse(raw) as TravelRequest[] });
+      } catch {
+        // Corrupt/incompatible localStorage data — ignore and keep the initial empty state.
+      }
     }
+    hasHydrated.current = true;
   }, []);
 
   useEffect(() => {
+    if (!hasHydrated.current) return;
     window.localStorage.setItem(TRAVEL_STORAGE_KEY, JSON.stringify(travelRequests));
   }, [travelRequests]);
 
