@@ -71,7 +71,6 @@ const TravelRequestsContext = createContext<TravelRequestsContextValue | null>(n
 
 export function TravelRequestsProvider({ children }: { children: ReactNode }) {
   const [travelRequests, dispatch] = useReducer(travelRequestsReducer, []);
-  const hasHydrated = useRef(false);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(TRAVEL_STORAGE_KEY);
@@ -82,11 +81,15 @@ export function TravelRequestsProvider({ children }: { children: ReactNode }) {
         // Corrupt/incompatible localStorage data — ignore and keep the initial empty state.
       }
     }
-    hasHydrated.current = true;
   }, []);
 
+  const isFirstPersist = useRef(true);
+
   useEffect(() => {
-    if (!hasHydrated.current) return;
+    if (isFirstPersist.current) {
+      isFirstPersist.current = false;
+      return;
+    }
     window.localStorage.setItem(TRAVEL_STORAGE_KEY, JSON.stringify(travelRequests));
   }, [travelRequests]);
 
