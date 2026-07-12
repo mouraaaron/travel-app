@@ -36,7 +36,7 @@ export function AppSidebar({ fullName, role }: { fullName: string; role: "employ
     <>
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col bg-sidebar text-sidebar-foreground lg:flex">
         <div className="flex h-14 items-center px-6">
-          <img src="/paggo-logo-light.svg" alt="Paggo" className="h-6 w-auto" />
+          <img src="/paggo-logo-light.svg" alt="Paggo" className="h-3 w-auto" />
         </div>
         <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
           {navItems.map((item) => {
