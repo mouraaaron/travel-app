@@ -1,4 +1,3 @@
-import { Users } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toAdminQueueRequest, type RequestRowWithEmployee } from "@/lib/requests-mapper";
 import { EmployeeRankingTable } from "@/components/admin/employee-ranking-table";
@@ -17,7 +16,7 @@ export default async function AdminReportsPage() {
     <div className="flex flex-col gap-5">
       <h1 className="text-xl font-semibold text-foreground">Relatórios</h1>
       {requests.length === 0 ? (
-        <EmptyState icon={Users} title="Nenhuma solicitação registrada ainda" />
+        <EmptyState title="Nenhuma solicitação registrada ainda" />
       ) : (
         <EmployeeRankingTable requests={requests} />
       )}

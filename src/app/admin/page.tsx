@@ -1,4 +1,3 @@
-import { BarChart3 } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toAdminQueueRequest, type RequestRowWithEmployee } from "@/lib/requests-mapper";
 import {
@@ -34,7 +33,7 @@ export default async function AdminDashboardPage() {
     return (
       <div className="flex flex-col gap-5">
         <h1 className="text-xl font-semibold text-foreground">Painel</h1>
-        <EmptyState icon={BarChart3} title="Nenhuma solicitação registrada ainda" />
+        <EmptyState title="Nenhuma solicitação registrada ainda" />
       </div>
     );
   }
