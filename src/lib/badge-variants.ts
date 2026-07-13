@@ -106,3 +106,25 @@ const EMPLOYEE_STATUS_BADGES: Record<EmployeeStatus, BadgeSpec> = {
 export function getEmployeeStatusBadge(status: EmployeeStatus): BadgeSpec {
   return EMPLOYEE_STATUS_BADGES[status];
 }
+
+export type Sector = "product" | "marketing" | "engineering" | "founders";
+
+export const SECTORS: Sector[] = ["product", "marketing", "engineering", "founders"];
+
+export const SECTOR_LABELS: Record<Sector, string> = {
+  product: "Produto",
+  marketing: "Marketing",
+  engineering: "Engenharia",
+  founders: "Founders",
+};
+
+const SECTOR_BADGES: Record<Sector, BadgeSpec> = {
+  product: { label: "Produto", variant: "info" },
+  marketing: { label: "Marketing", variant: "magic" },
+  engineering: { label: "Engenharia", variant: "secondary" },
+  founders: { label: "Founders", variant: "default" },
+};
+
+export function getSectorBadge(sector: Sector): BadgeSpec {
+  return SECTOR_BADGES[sector];
+}
