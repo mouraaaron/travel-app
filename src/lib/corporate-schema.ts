@@ -6,7 +6,6 @@ export const corporateContextSchema = z
     trip_purpose: z.enum(["client_meeting", "conference", "internal_meeting", "training", "other"], {
       error: "Selecione o motivo da viagem",
     }),
-    cost_center: z.string().min(1, "Selecione o centro de custo"),
     project_code: z.string().optional(),
     business_justification: z.string().trim().min(20, "Mínimo 20 caracteres"),
     isOutOfPolicy: z.boolean(),
@@ -18,8 +17,6 @@ export const corporateContextSchema = z
   });
 
 export type CorporateContextFormValues = z.infer<typeof corporateContextSchema>;
-
-export const COST_CENTERS: string[] = ["Engenharia", "Vendas", "Produto", "Operações", "Diretoria"];
 
 export const TRIP_PURPOSE_LABELS: Record<TripPurpose, string> = {
   client_meeting: "Reunião com cliente",

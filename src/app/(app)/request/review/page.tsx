@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,26 +14,41 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { WizardStepper } from "@/components/trip/wizard-stepper";
 import {
-  COST_CENTERS,
   TRIP_PURPOSE_LABELS,
   corporateContextSchema,
   type CorporateContextFormValues,
 } from "@/lib/corporate-schema";
 import { formatCurrency, formatDate } from "@/lib/offer-format";
-import { evaluateDuffelOffer } from "@/lib/policy";
+import { evaluateDuffelOffer, DUFFEL_POLICY_DEFAULTS, type DuffelPolicyDefaults } from "@/lib/policy";
 import { useTripFlow } from "@/lib/trip-flow-store";
 
 export default function ReviewPage() {
   const router = useRouter();
   const { criteria, selectedOffer: offer, passengers, corporate, reset } = useTripFlow();
-  const evaluation = offer ? evaluateDuffelOffer(offer) : null;
+  const [policyDefaults, setPolicyDefaults] = useState<DuffelPolicyDefaults>(DUFFEL_POLICY_DEFAULTS);
+  const [policyLoaded, setPolicyLoaded] = useState(false);
+  const evaluation = offer ? evaluateDuffelOffer(offer, policyDefaults) : null;
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/policy/me")
+      .then((res) => res.json())
+      .then((body) => {
+        if (!cancelled && body?.defaults) setPolicyDefaults(body.defaults);
+      })
+      .finally(() => {
+        if (!cancelled) setPolicyLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const form = useForm<CorporateContextFormValues>({
     resolver: zodResolver(corporateContextSchema),
     defaultValues: {
       trip_purpose: corporate?.trip_purpose ?? "client_meeting",
-      cost_center: corporate?.cost_center ?? "",
       project_code: corporate?.project_code ?? "",
       business_justification: corporate?.business_justification ?? "",
       isOutOfPolicy: evaluation ? !evaluation.compliant : false,
@@ -88,7 +103,6 @@ export default function ReviewPage() {
       passengers,
       corporate: {
         trip_purpose: values.trip_purpose,
-        cost_center: values.cost_center,
         project_code: values.project_code || undefined,
         business_justification: values.business_justification,
         out_of_policy_justification: values.isOutOfPolicy ? values.out_of_policy_justification : undefined,
@@ -183,7 +197,7 @@ export default function ReviewPage() {
           <Card>
             <CardContent className="flex flex-col gap-4 p-6">
               <h2 className="text-base font-semibold text-foreground">Contexto corporativo</h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="trip_purpose"
@@ -204,30 +218,6 @@ export default function ReviewPage() {
                           ))}
                         </SelectContent>
                       </Select>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="cost_center"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Centro de custo</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione..." />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {COST_CENTERS.map((center) => (
-                            <SelectItem key={center} value={center}>
-                              {center}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -299,10 +289,10 @@ export default function ReviewPage() {
             <Button
               type="submit"
               size="lg"
-              disabled={submitting}
+              disabled={submitting || !policyLoaded}
               className="bg-brand-gradient hover:bg-brand-gradient-hover"
             >
-              {submitting ? "Enviando..." : "Enviar solicitação"}
+              {submitting ? "Enviando..." : !policyLoaded ? "Carregando política..." : "Enviar solicitação"}
             </Button>
           </div>
         </form>

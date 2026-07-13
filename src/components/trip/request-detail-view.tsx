@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { PolicyBadges } from "@/components/trip/policy-badges";
 import { RequestStatusBadge } from "@/components/trip/request-status-badge";
-import { getTravelRequestTimelineLabel } from "@/lib/badge-variants";
+import { getTravelRequestTimelineLabel, SECTOR_LABELS, type Sector } from "@/lib/badge-variants";
 import { formatCurrency, formatDate, formatDateTime, getRouteLabel } from "@/lib/offer-format";
 import { maskEmail, maskGivenName, maskPhone } from "@/lib/passenger-masking";
 import type { TravelRequest } from "@/lib/types";
@@ -129,7 +129,7 @@ export function RequestDetailView({ request }: { request: TravelRequest }) {
             <CardContent className="flex flex-col gap-2 p-6 text-sm">
               <h2 className="text-base font-semibold text-foreground">Contexto corporativo</h2>
               <p>Motivo: {TRIP_PURPOSE_LABELS[request.corporate.trip_purpose]}</p>
-              <p>Centro de custo: {request.corporate.cost_center}</p>
+              <p>Setor: {SECTOR_LABELS[request.corporate.cost_center as Sector]}</p>
               {request.corporate.project_code ? <p>Projeto: {request.corporate.project_code}</p> : null}
               <p className="text-muted-foreground">{request.corporate.business_justification}</p>
             </CardContent>

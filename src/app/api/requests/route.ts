@@ -35,7 +35,6 @@ const requestCreateSchema = z.object({
   passengers: z.array(z.any()).min(1),
   corporate: z.object({
     trip_purpose: z.enum(["client_meeting", "conference", "internal_meeting", "training", "other"]),
-    cost_center: z.string(),
     project_code: z.string().optional(),
     business_justification: z.string(),
     out_of_policy_justification: z.string().optional(),
@@ -61,7 +60,7 @@ export async function POST(request: Request) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("organization_id")
+    .select("organization_id, cost_center")
     .eq("id", user.id)
     .single();
   if (!profile) {
@@ -87,7 +86,7 @@ export async function POST(request: Request) {
       search_criteria: parsed.data.search_criteria,
       selected_offer_snapshot: parsed.data.selected_offer_snapshot,
       passengers: parsed.data.passengers,
-      corporate: parsed.data.corporate,
+      corporate: { ...parsed.data.corporate, cost_center: profile.cost_center },
       policy_evaluation: parsed.data.policy_evaluation,
       events: parsed.data.events,
     })

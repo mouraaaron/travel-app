@@ -3,7 +3,6 @@ import { corporateContextSchema } from "./corporate-schema";
 
 const valid = {
   trip_purpose: "conference" as const,
-  cost_center: "Engenharia",
   project_code: "",
   business_justification: "Conferência anual do setor de pagamentos.",
   isOutOfPolicy: false,
@@ -17,11 +16,6 @@ describe("corporateContextSchema", () => {
 
   it("rejects a business_justification shorter than 20 characters", () => {
     const result = corporateContextSchema.safeParse({ ...valid, business_justification: "Muito curto" });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects an empty cost_center", () => {
-    const result = corporateContextSchema.safeParse({ ...valid, cost_center: "" });
     expect(result.success).toBe(false);
   });
 
