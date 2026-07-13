@@ -1,3 +1,4 @@
+import type { Sector } from "./badge-variants";
 import type { TravelRequest } from "./types";
 
 export interface RequestRow {
@@ -33,16 +34,18 @@ export function toTravelRequest(row: RequestRow): TravelRequest {
 }
 
 export interface RequestRowWithEmployee extends RequestRow {
-  profiles: { full_name: string } | null;
+  profiles: { full_name: string; cost_center: Sector } | null;
 }
 
 export interface AdminQueueRequest extends TravelRequest {
   employeeName: string;
+  employeeSector: Sector;
 }
 
 export function toAdminQueueRequest(row: RequestRowWithEmployee): AdminQueueRequest {
   return {
     ...toTravelRequest(row),
     employeeName: row.profiles?.full_name ?? "Funcionário",
+    employeeSector: row.profiles?.cost_center ?? "engineering",
   };
 }

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { monthlySpend, spendVsPreviousMonth } from "./admin-analytics";
-import { complianceRate, outOfPolicyByEmployee, spendByCostCenter, spendByEmployee } from "./admin-analytics";
-import { requestsByStatus, tripPurposeBreakdown } from "./admin-analytics";
+import { complianceRate, outOfPolicyByEmployee, spendBySector, spendByEmployee } from "./admin-analytics";
+import { requestsByStatus, tripPurposeBreakdown, requestVolumeBySector, headcountBySector } from "./admin-analytics";
 import { avgApprovalTimeHours } from "./admin-analytics";
 import { recentOutOfPolicy } from "./admin-analytics";
 import type { AdminQueueRequest } from "./requests-mapper";
@@ -12,6 +12,7 @@ function makeRequest(overrides: Partial<AdminQueueRequest> = {}): AdminQueueRequ
     organization_id: "org_1",
     employee_id: "emp_1",
     employeeName: "Carlos Medeiros",
+    employeeSector: "engineering",
     created_at: "2026-07-06T09:14:00Z",
     status: "pending_admin",
     search_criteria: {
@@ -44,7 +45,7 @@ function makeRequest(overrides: Partial<AdminQueueRequest> = {}): AdminQueueRequ
     passengers: [],
     corporate: {
       trip_purpose: "client_meeting",
-      cost_center: "Vendas",
+      cost_center: "engineering",
       business_justification: "Visita a cliente.",
     },
     policy_evaluation: {
@@ -169,17 +170,51 @@ describe("outOfPolicyByEmployee", () => {
   });
 });
 
-describe("spendByCostCenter", () => {
-  it("sums realized spend per cost center, sorted descending", () => {
+describe("spendBySector", () => {
+  it("sums realized spend per sector, sorted descending", () => {
     const snapshot = makeRequest().selected_offer_snapshot;
     const requests = [
-      makeRequest({ id: "a", status: "approved", corporate: { ...makeRequest().corporate, cost_center: "Vendas" }, selected_offer_snapshot: { ...snapshot, total_amount: "1000.00" } }),
-      makeRequest({ id: "b", status: "confirmed", corporate: { ...makeRequest().corporate, cost_center: "Vendas" }, selected_offer_snapshot: { ...snapshot, total_amount: "500.00" } }),
-      makeRequest({ id: "c", status: "approved", corporate: { ...makeRequest().corporate, cost_center: "Engenharia" }, selected_offer_snapshot: { ...snapshot, total_amount: "800.00" } }),
+      makeRequest({ id: "a", status: "approved", corporate: { ...makeRequest().corporate, cost_center: "marketing" }, selected_offer_snapshot: { ...snapshot, total_amount: "1000.00" } }),
+      makeRequest({ id: "b", status: "confirmed", corporate: { ...makeRequest().corporate, cost_center: "marketing" }, selected_offer_snapshot: { ...snapshot, total_amount: "500.00" } }),
+      makeRequest({ id: "c", status: "approved", corporate: { ...makeRequest().corporate, cost_center: "engineering" }, selected_offer_snapshot: { ...snapshot, total_amount: "800.00" } }),
     ];
-    expect(spendByCostCenter(requests)).toEqual([
-      { costCenter: "Vendas", total: 1500 },
-      { costCenter: "Engenharia", total: 800 },
+    expect(spendBySector(requests)).toEqual([
+      { sector: "marketing", total: 1500 },
+      { sector: "engineering", total: 800 },
+      { sector: "product", total: 0 },
+      { sector: "founders", total: 0 },
+    ]);
+  });
+});
+
+describe("requestVolumeBySector", () => {
+  it("returns all 4 sectors in enum order, counting matches and zero-filling the rest", () => {
+    const requests = [
+      makeRequest({ id: "a", corporate: { ...makeRequest().corporate, cost_center: "product" } }),
+      makeRequest({ id: "b", corporate: { ...makeRequest().corporate, cost_center: "product" } }),
+      makeRequest({ id: "c", corporate: { ...makeRequest().corporate, cost_center: "founders" } }),
+    ];
+    expect(requestVolumeBySector(requests)).toEqual([
+      { sector: "product", count: 2 },
+      { sector: "marketing", count: 0 },
+      { sector: "engineering", count: 0 },
+      { sector: "founders", count: 1 },
+    ]);
+  });
+});
+
+describe("headcountBySector", () => {
+  it("counts employees per sector, in enum order, zero-filling sectors with no one in them", () => {
+    const employees = [
+      { id: "1", full_name: "A", email: "a@x.com", role: "employee" as const, status: "active" as const, cost_center: "engineering" as const, created_at: "2026-01-01T00:00:00Z" },
+      { id: "2", full_name: "B", email: "b@x.com", role: "employee" as const, status: "active" as const, cost_center: "engineering" as const, created_at: "2026-01-01T00:00:00Z" },
+      { id: "3", full_name: "C", email: "c@x.com", role: "admin" as const, status: "active" as const, cost_center: "founders" as const, created_at: "2026-01-01T00:00:00Z" },
+    ];
+    expect(headcountBySector(employees)).toEqual([
+      { sector: "product", count: 0 },
+      { sector: "marketing", count: 0 },
+      { sector: "engineering", count: 2 },
+      { sector: "founders", count: 1 },
     ]);
   });
 });

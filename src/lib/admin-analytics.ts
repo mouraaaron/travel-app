@@ -1,3 +1,5 @@
+import type { Employee } from "./employees-mapper";
+import { SECTORS, type Sector } from "./badge-variants";
 import type { AdminQueueRequest } from "./requests-mapper";
 import type { TravelRequestStatus, TripPurpose } from "./types";
 
@@ -97,18 +99,34 @@ export function outOfPolicyByEmployee(
     .sort((a, b) => b.count - a.count);
 }
 
-export function spendByCostCenter(
+export function spendBySector(
   requests: AdminQueueRequest[]
-): { costCenter: string; total: number }[] {
-  const totals = new Map<string, number>();
+): { sector: Sector; total: number }[] {
+  const totals = new Map<Sector, number>(SECTORS.map((sector) => [sector, 0]));
   for (const request of requests) {
     if (!isRealizedSpend(request)) continue;
-    const key = request.corporate.cost_center;
+    const key = request.corporate.cost_center as Sector;
     totals.set(key, (totals.get(key) ?? 0) + requestSpend(request));
   }
   return Array.from(totals.entries())
-    .map(([costCenter, total]) => ({ costCenter, total }))
+    .map(([sector, total]) => ({ sector, total }))
     .sort((a, b) => b.total - a.total);
+}
+
+export function requestVolumeBySector(
+  requests: AdminQueueRequest[]
+): { sector: Sector; count: number }[] {
+  return SECTORS.map((sector) => ({
+    sector,
+    count: requests.filter((r) => r.corporate.cost_center === sector).length,
+  }));
+}
+
+export function headcountBySector(employees: Employee[]): { sector: Sector; count: number }[] {
+  return SECTORS.map((sector) => ({
+    sector,
+    count: employees.filter((e) => e.cost_center === sector).length,
+  }));
 }
 
 const ALL_STATUSES: TravelRequestStatus[] = [

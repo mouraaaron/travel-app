@@ -30,7 +30,7 @@ const ROW: RequestRow = {
   passengers: [],
   corporate: {
     trip_purpose: "client_meeting",
-    cost_center: "Engenharia",
+    cost_center: "engineering",
     business_justification: "Reunião com cliente estratégico.",
   },
   policy_evaluation: {
@@ -46,21 +46,23 @@ describe("toTravelRequest", () => {
     const result = toTravelRequest(ROW);
     expect(result.id).toBe("req_1");
     expect(result.status).toBe("pending_admin");
-    expect(result.corporate.cost_center).toBe("Engenharia");
+    expect(result.corporate.cost_center).toBe("engineering");
     expect(result.events).toHaveLength(1);
     expect(result.selected_offer_snapshot.owner.name).toBe("LATAM");
   });
 });
 
 describe("toAdminQueueRequest", () => {
-  it("adds the employee's name from the joined profiles row", () => {
-    const result = toAdminQueueRequest({ ...ROW, profiles: { full_name: "Fernanda Lima" } });
+  it("adds the employee's name and sector from the joined profiles row", () => {
+    const result = toAdminQueueRequest({ ...ROW, profiles: { full_name: "Fernanda Lima", cost_center: "product" } });
     expect(result.employeeName).toBe("Fernanda Lima");
+    expect(result.employeeSector).toBe("product");
     expect(result.status).toBe("pending_admin");
   });
 
-  it("falls back to a generic label when there is no joined profile", () => {
+  it("falls back to a generic label and engineering when there is no joined profile", () => {
     const result = toAdminQueueRequest({ ...ROW, profiles: null });
     expect(result.employeeName).toBe("Funcionário");
+    expect(result.employeeSector).toBe("engineering");
   });
 });

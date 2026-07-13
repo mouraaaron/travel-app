@@ -8,6 +8,7 @@ function makeRequest(overrides: Partial<AdminQueueRequest> = {}): AdminQueueRequ
     organization_id: "org_1",
     employee_id: "emp_1",
     employeeName: "Carlos Medeiros",
+    employeeSector: "engineering",
     created_at: "2026-07-06T09:14:00Z",
     status: "pending_admin",
     search_criteria: {
@@ -40,7 +41,7 @@ function makeRequest(overrides: Partial<AdminQueueRequest> = {}): AdminQueueRequ
     passengers: [],
     corporate: {
       trip_purpose: "client_meeting",
-      cost_center: "Vendas",
+      cost_center: "engineering",
       business_justification: "Visita a cliente.",
     },
     policy_evaluation: {
