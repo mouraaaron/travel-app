@@ -12,19 +12,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import type { EmployeeRole, EmployeeStatus } from "@/lib/badge-variants";
+import { SECTOR_LABELS, SECTORS, type EmployeeRole, type EmployeeStatus, type Sector } from "@/lib/badge-variants";
 
 interface EmployeeActionsProps {
   employeeId: string;
   role: EmployeeRole;
   status: EmployeeStatus;
+  costCenter: Sector;
   isSelf: boolean;
 }
 
-export function EmployeeActions({ employeeId, role, status, isSelf }: EmployeeActionsProps) {
+export function EmployeeActions({ employeeId, role, status, costCenter, isSelf }: EmployeeActionsProps) {
   const router = useRouter();
   const [savingRole, setSavingRole] = useState(false);
   const [savingStatus, setSavingStatus] = useState(false);
+  const [savingSector, setSavingSector] = useState(false);
 
   async function handleRoleChange(nextRole: EmployeeRole) {
     setSavingRole(true);
@@ -71,6 +73,28 @@ export function EmployeeActions({ employeeId, role, status, isSelf }: EmployeeAc
     }
   }
 
+  async function handleSectorChange(nextSector: Sector) {
+    setSavingSector(true);
+    try {
+      const response = await fetch(`/api/admin/employees/${employeeId}/cost-center`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cost_center: nextSector }),
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        toast.error(body?.error ?? "Não foi possível alterar o setor.");
+        return;
+      }
+      toast.success("Setor atualizado.");
+      router.refresh();
+    } catch {
+      toast.error("Não foi possível alterar o setor.");
+    } finally {
+      setSavingSector(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4 rounded-md border border-border bg-card p-5">
       <div className="flex flex-col gap-1.5">
@@ -89,6 +113,26 @@ export function EmployeeActions({ employeeId, role, status, isSelf }: EmployeeAc
           <SelectContent>
             <SelectItem value="employee">Funcionário</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Label>Setor</Label>
+        <Select
+          value={costCenter}
+          disabled={savingSector}
+          onValueChange={(value) => handleSectorChange(value as Sector)}
+        >
+          <SelectTrigger className="w-[200px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SECTORS.map((sector) => (
+              <SelectItem key={sector} value={sector}>
+                {SECTOR_LABELS[sector]}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

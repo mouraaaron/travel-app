@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { EmployeeActions } from "@/components/admin/employee-actions";
 import { EmployeeSummaryCards } from "@/components/admin/employee-summary-cards";
 import { NotFoundState } from "@/components/layout/not-found-state";
-import { getEmployeeStatusBadge, getRoleBadge } from "@/lib/badge-variants";
+import { getEmployeeStatusBadge, getRoleBadge, getSectorBadge } from "@/lib/badge-variants";
 import { outOfPolicyByEmployee, spendByEmployee } from "@/lib/admin-analytics";
 import { toEmployee, type EmployeeRow } from "@/lib/employees-mapper";
 import { formatDate } from "@/lib/offer-format";
@@ -20,7 +20,7 @@ export default async function AdminEmployeeDetailPage({ params }: { params: { id
 
   const { data: employeeRow } = await supabase
     .from("profiles")
-    .select("id, full_name, email, role, status, created_at")
+    .select("id, full_name, email, role, status, cost_center, created_at")
     .eq("id", params.id)
     .single();
 
@@ -48,6 +48,7 @@ export default async function AdminEmployeeDetailPage({ params }: { params: { id
 
   const roleBadge = getRoleBadge(employee.role);
   const statusBadge = getEmployeeStatusBadge(employee.status);
+  const sectorBadge = getSectorBadge(employee.cost_center);
 
   return (
     <div className="flex flex-col gap-6">
@@ -70,6 +71,7 @@ export default async function AdminEmployeeDetailPage({ params }: { params: { id
         </div>
         <div className="flex gap-2">
           <Badge variant={roleBadge.variant}>{roleBadge.label}</Badge>
+          <Badge variant={sectorBadge.variant}>{sectorBadge.label}</Badge>
           <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
         </div>
       </div>
@@ -88,6 +90,7 @@ export default async function AdminEmployeeDetailPage({ params }: { params: { id
         employeeId={employee.id}
         role={employee.role}
         status={employee.status}
+        costCenter={employee.cost_center}
         isSelf={currentProfile?.id === employee.id}
       />
     </div>

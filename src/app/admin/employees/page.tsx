@@ -7,7 +7,7 @@ export default async function AdminEmployeesPage() {
   const supabase = createSupabaseServerClient();
   const { data: rows } = await supabase
     .from("profiles")
-    .select("id, full_name, email, role, status, created_at")
+    .select("id, full_name, email, role, status, cost_center, created_at")
     .order("full_name", { ascending: true });
 
   const employees = ((rows ?? []) as EmployeeRow[]).map(toEmployee);

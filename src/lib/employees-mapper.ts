@@ -1,4 +1,4 @@
-import type { EmployeeRole, EmployeeStatus } from "./badge-variants";
+import type { EmployeeRole, EmployeeStatus, Sector } from "./badge-variants";
 
 export interface EmployeeRow {
   id: string;
@@ -6,6 +6,7 @@ export interface EmployeeRow {
   email: string;
   role: EmployeeRole;
   status: EmployeeStatus;
+  cost_center: Sector;
   created_at: string;
 }
 

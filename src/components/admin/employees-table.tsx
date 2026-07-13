@@ -18,20 +18,26 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import {
   getEmployeeStatusBadge,
   getRoleBadge,
+  getSectorBadge,
+  SECTOR_LABELS,
+  SECTORS,
   type EmployeeRole,
   type EmployeeStatus,
+  type Sector,
 } from "@/lib/badge-variants";
 import type { Employee } from "@/lib/employees-mapper";
 import { initialsFromName } from "@/lib/utils";
 
 type RoleFilter = "all" | EmployeeRole;
 type StatusFilter = "all" | EmployeeStatus;
+type SectorFilter = "all" | Sector;
 
 export function EmployeesTable({ employees }: { employees: Employee[] }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [sectorFilter, setSectorFilter] = useState<SectorFilter>("all");
 
   const filtered = useMemo(() => {
     const loweredQuery = query.trim().toLowerCase();
@@ -42,9 +48,10 @@ export function EmployeesTable({ employees }: { employees: Employee[] }) {
         employee.email.toLowerCase().includes(loweredQuery);
       const matchesRole = roleFilter === "all" || employee.role === roleFilter;
       const matchesStatus = statusFilter === "all" || employee.status === statusFilter;
-      return matchesQuery && matchesRole && matchesStatus;
+      const matchesSector = sectorFilter === "all" || employee.cost_center === sectorFilter;
+      return matchesQuery && matchesRole && matchesStatus && matchesSector;
     });
-  }, [employees, query, roleFilter, statusFilter]);
+  }, [employees, query, roleFilter, statusFilter, sectorFilter]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -78,6 +85,19 @@ export function EmployeesTable({ employees }: { employees: Employee[] }) {
             <SelectItem value="inactive">Inativo</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={sectorFilter} onValueChange={(value) => setSectorFilter(value as SectorFilter)}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Setor" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os setores</SelectItem>
+            {SECTORS.map((sector) => (
+              <SelectItem key={sector} value={sector}>
+                {SECTOR_LABELS[sector]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {filtered.length === 0 ? (
@@ -89,6 +109,7 @@ export function EmployeesTable({ employees }: { employees: Employee[] }) {
               <TableHead>Funcionário</TableHead>
               <TableHead>E-mail</TableHead>
               <TableHead>Papel</TableHead>
+              <TableHead>Setor</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -96,6 +117,7 @@ export function EmployeesTable({ employees }: { employees: Employee[] }) {
             {filtered.map((employee) => {
               const roleBadge = getRoleBadge(employee.role);
               const statusBadge = getEmployeeStatusBadge(employee.status);
+              const sectorBadge = getSectorBadge(employee.cost_center);
               return (
                 <TableRow
                   key={employee.id}
@@ -113,6 +135,9 @@ export function EmployeesTable({ employees }: { employees: Employee[] }) {
                   <TableCell className="text-muted-foreground">{employee.email}</TableCell>
                   <TableCell>
                     <Badge variant={roleBadge.variant}>{roleBadge.label}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={sectorBadge.variant}>{sectorBadge.label}</Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
