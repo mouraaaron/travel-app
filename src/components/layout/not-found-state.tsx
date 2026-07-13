@@ -3,19 +3,20 @@
 import { useRouter } from "next/navigation";
 import { EmptyState } from "@/components/ui/empty-state";
 
-export function RequestNotFound({
-  backHref = "/requests",
-  backLabel = "Minhas solicitações",
-}: {
-  backHref?: string;
-  backLabel?: string;
-}) {
+interface NotFoundStateProps {
+  title: string;
+  description: string;
+  backHref: string;
+  backLabel: string;
+}
+
+export function NotFoundState({ title, description, backHref, backLabel }: NotFoundStateProps) {
   const router = useRouter();
   return (
     <div className="mx-auto max-w-[1080px]">
       <EmptyState
-        title="Solicitação não encontrada"
-        description="Ela pode ter sido removida, ou você não tem acesso a ela."
+        title={title}
+        description={description}
         button={{ label: backLabel, onClick: () => router.push(backHref) }}
       />
     </div>

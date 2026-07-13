@@ -32,10 +32,31 @@ describe("getCurrentProfile", () => {
     expect(result).toBeNull();
   });
 
-  it("maps a profile row into CurrentProfile", async () => {
+  it("returns null when the profile is inactive", async () => {
     mockGetUser.mockResolvedValueOnce({ data: { user: { id: "u1" } } });
     mockSingle.mockResolvedValueOnce({
-      data: { id: "u1", organization_id: "org1", role: "admin", full_name: "Admin Demo" },
+      data: {
+        id: "u1",
+        organization_id: "org1",
+        role: "employee",
+        full_name: "Funcionário Demo",
+        status: "inactive",
+      },
+    });
+    const result = await getCurrentProfile();
+    expect(result).toBeNull();
+  });
+
+  it("maps an active profile row into CurrentProfile", async () => {
+    mockGetUser.mockResolvedValueOnce({ data: { user: { id: "u1" } } });
+    mockSingle.mockResolvedValueOnce({
+      data: {
+        id: "u1",
+        organization_id: "org1",
+        role: "admin",
+        full_name: "Admin Demo",
+        status: "active",
+      },
     });
     const result = await getCurrentProfile();
     expect(result).toEqual({
