@@ -3,10 +3,12 @@
 import { useMemo, useState } from "react";
 import { ArrowUpDown } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { EmployeeDetail } from "@/components/admin/employee-detail";
 import { outOfPolicyByEmployee, spendByEmployee } from "@/lib/admin-analytics";
+import { getSectorBadge, type Sector } from "@/lib/badge-variants";
 import { formatCurrency } from "@/lib/offer-format";
 import { initialsFromName } from "@/lib/utils";
 import type { AdminQueueRequest } from "@/lib/requests-mapper";
@@ -16,6 +18,7 @@ type SortColumn = "spend" | "violations";
 interface EmployeeRankingRow {
   employeeId: string;
   name: string;
+  sector: Sector;
   totalSpend: number;
   violationCount: number;
 }
@@ -24,6 +27,14 @@ export function EmployeeRankingTable({ requests }: { requests: AdminQueueRequest
   const [sortColumn, setSortColumn] = useState<SortColumn>("spend");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+
+  const sectorByEmployee = useMemo(() => {
+    const map = new Map<string, Sector>();
+    for (const request of requests) {
+      if (!map.has(request.employee_id)) map.set(request.employee_id, request.employeeSector);
+    }
+    return map;
+  }, [requests]);
 
   const rows = useMemo<EmployeeRankingRow[]>(() => {
     const spend = spendByEmployee(requests);
@@ -34,6 +45,7 @@ export function EmployeeRankingTable({ requests }: { requests: AdminQueueRequest
       byEmployee.set(entry.employeeId, {
         employeeId: entry.employeeId,
         name: entry.name,
+        sector: sectorByEmployee.get(entry.employeeId) ?? "engineering",
         totalSpend: entry.total,
         violationCount: 0,
       });
@@ -46,13 +58,14 @@ export function EmployeeRankingTable({ requests }: { requests: AdminQueueRequest
         byEmployee.set(entry.employeeId, {
           employeeId: entry.employeeId,
           name: entry.name,
+          sector: sectorByEmployee.get(entry.employeeId) ?? "engineering",
           totalSpend: 0,
           violationCount: entry.count,
         });
       }
     }
     return Array.from(byEmployee.values());
-  }, [requests]);
+  }, [requests, sectorByEmployee]);
 
   const sortedRows = useMemo(() => {
     const factor = sortDir === "desc" ? -1 : 1;
@@ -82,6 +95,7 @@ export function EmployeeRankingTable({ requests }: { requests: AdminQueueRequest
             <TableHeader>
               <TableRow>
                 <TableHead>Funcionário</TableHead>
+                <TableHead>Setor</TableHead>
                 <TableHead>
                   <button type="button" onClick={() => handleSort("spend")} className="flex items-center gap-1 font-medium">
                     Gasto total <ArrowUpDown className="size-3.5" />
@@ -95,25 +109,31 @@ export function EmployeeRankingTable({ requests }: { requests: AdminQueueRequest
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedRows.map((row) => (
-                <TableRow
-                  key={row.employeeId}
-                  data-state={row.employeeId === selectedEmployeeId ? "selected" : undefined}
-                  onClick={() => setSelectedEmployeeId(row.employeeId)}
-                  className="cursor-pointer"
-                >
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-7 w-7">
-                        <AvatarFallback>{initialsFromName(row.name)}</AvatarFallback>
-                      </Avatar>
-                      <span className="font-medium text-foreground">{row.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{formatCurrency(row.totalSpend, "BRL")}</TableCell>
-                  <TableCell>{row.violationCount}</TableCell>
-                </TableRow>
-              ))}
+              {sortedRows.map((row) => {
+                const sectorBadge = getSectorBadge(row.sector);
+                return (
+                  <TableRow
+                    key={row.employeeId}
+                    data-state={row.employeeId === selectedEmployeeId ? "selected" : undefined}
+                    onClick={() => setSelectedEmployeeId(row.employeeId)}
+                    className="cursor-pointer"
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-7 w-7">
+                          <AvatarFallback>{initialsFromName(row.name)}</AvatarFallback>
+                        </Avatar>
+                        <span className="font-medium text-foreground">{row.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={sectorBadge.variant}>{sectorBadge.label}</Badge>
+                    </TableCell>
+                    <TableCell>{formatCurrency(row.totalSpend, "BRL")}</TableCell>
+                    <TableCell>{row.violationCount}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>

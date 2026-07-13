@@ -7,7 +7,7 @@ export default async function AdminReportsPage() {
   const supabase = createSupabaseServerClient();
   const { data: rows } = await supabase
     .from("requests")
-    .select("*, profiles(full_name)")
+    .select("*, profiles(full_name, cost_center)")
     .order("created_at", { ascending: true });
 
   const requests = ((rows ?? []) as RequestRowWithEmployee[]).map(toAdminQueueRequest);
