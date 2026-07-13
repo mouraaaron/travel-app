@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import type { TravelRequestStatus, TripPurpose } from "../src/lib/types";
+import type { Sector } from "../src/lib/badge-variants";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -17,7 +18,7 @@ const ORG_NAME = "Paggo (Demo)";
 const DEMO_EMPLOYEE_ID = "39557140-a4c1-46cc-803e-021b433332ab";
 const REQUESTS_PER_EMPLOYEE = 12;
 
-const COST_CENTERS = ["Engenharia", "Vendas", "Marketing", "Operações"];
+const SECTORS: Sector[] = ["product", "marketing", "engineering", "founders"];
 const TRIP_PURPOSES: TripPurpose[] = ["client_meeting", "conference", "internal_meeting", "training", "other"];
 const CARRIERS = [
   { iata_code: "LA", name: "LATAM" },
@@ -52,11 +53,12 @@ function randomDateWithinLastMonths(months: number): Date {
   return new Date(past + Math.random() * (now - past));
 }
 
-async function createEmployee(organizationId: string): Promise<{ id: string; fullName: string }> {
+async function createEmployee(organizationId: string): Promise<{ id: string; fullName: string; sector: Sector }> {
   const fullName = faker.person.fullName();
   const email = faker.internet
     .email({ firstName: fullName.split(" ")[0], provider: "demo-paggo.com" })
     .toLowerCase();
+  const sector = pick(SECTORS);
 
   const { data: userData, error: userError } = await supabase.auth.admin.createUser({
     email,
@@ -72,16 +74,17 @@ async function createEmployee(organizationId: string): Promise<{ id: string; ful
     organization_id: organizationId,
     role: "employee",
     full_name: fullName,
+    cost_center: sector,
   });
   if (profileError) {
     throw new Error(`Falha ao criar profile para ${email}: ${profileError.message}`);
   }
 
-  console.log(`Criado employee: ${fullName} <${email}>`);
-  return { id: userData.user.id, fullName };
+  console.log(`Criado employee: ${fullName} <${email}> (${sector})`);
+  return { id: userData.user.id, fullName, sector };
 }
 
-function buildRequest(employeeId: string, organizationId: string) {
+function buildRequest(employeeId: string, organizationId: string, sector: Sector) {
   const status = pick(STATUS_POOL);
   const route = pick(ROUTES);
   const carrier = pick(CARRIERS);
@@ -90,7 +93,6 @@ function buildRequest(employeeId: string, organizationId: string) {
   const totalAmount = Number((compliant ? basePrice : basePrice + 3000 + Math.random() * 4000).toFixed(2));
   const createdAt = randomDateWithinLastMonths(6);
   const purpose = pick(TRIP_PURPOSES);
-  const costCenter = pick(COST_CENTERS);
   const cap = route.international ? 12000 : 3500;
 
   const events: Array<{ at: string; kind: string }> = [{ at: createdAt.toISOString(), kind: "created" }];
@@ -140,7 +142,7 @@ function buildRequest(employeeId: string, organizationId: string) {
     passengers: [],
     corporate: {
       trip_purpose: purpose,
-      cost_center: costCenter,
+      cost_center: sector,
       business_justification: faker.lorem.sentence(),
       ...(compliant ? {} : { out_of_policy_justification: faker.lorem.sentence() }),
     },
@@ -178,16 +180,30 @@ async function main() {
     throw new Error(`Organização seed "${ORG_NAME}" não encontrada — rode a migração 0001_init.sql primeiro.`);
   }
 
+  const { data: demoProfile, error: demoProfileError } = await supabase
+    .from("profiles")
+    .select("cost_center")
+    .eq("id", DEMO_EMPLOYEE_ID)
+    .single();
+  if (demoProfileError || !demoProfile) {
+    throw new Error(
+      `Profile demo ${DEMO_EMPLOYEE_ID} não encontrado — rode 0005_employee_sectors.sql antes do seed.`
+    );
+  }
+
   const newEmployees = await Promise.all([
     createEmployee(org.id),
     createEmployee(org.id),
     createEmployee(org.id),
     createEmployee(org.id),
   ]);
-  const employeeIds = [DEMO_EMPLOYEE_ID, ...newEmployees.map((e) => e.id)];
+  const employees: Array<{ id: string; sector: Sector }> = [
+    { id: DEMO_EMPLOYEE_ID, sector: demoProfile.cost_center as Sector },
+    ...newEmployees.map((e) => ({ id: e.id, sector: e.sector })),
+  ];
 
-  const requests = employeeIds.flatMap((employeeId) =>
-    Array.from({ length: REQUESTS_PER_EMPLOYEE }, () => buildRequest(employeeId, org.id))
+  const requests = employees.flatMap(({ id, sector }) =>
+    Array.from({ length: REQUESTS_PER_EMPLOYEE }, () => buildRequest(id, org.id, sector))
   );
 
   const { error: insertError } = await supabase.from("requests").insert(requests);
