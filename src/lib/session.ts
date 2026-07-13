@@ -16,11 +16,11 @@ export async function getCurrentProfile(): Promise<CurrentProfile | null> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, organization_id, role, full_name")
+    .select("id, organization_id, role, full_name, status")
     .eq("id", user.id)
     .single();
 
-  if (!profile) return null;
+  if (!profile || profile.status !== "active") return null;
 
   return {
     id: profile.id,
