@@ -10,7 +10,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { getTravelRequestStatusBadge } from "@/lib/badge-variants";
+import { getTravelRequestStatusBadge, SECTOR_LABELS, type Sector } from "@/lib/badge-variants";
 import { formatCurrency } from "@/lib/offer-format";
 import type { TravelRequestStatus, TripPurpose } from "@/lib/types";
 
@@ -44,19 +44,21 @@ export function StatusVolumeChart({ data }: { data: { status: TravelRequestStatu
   );
 }
 
-const COST_CENTER_CONFIG: ChartConfig = {
+const SECTOR_SPEND_CONFIG: ChartConfig = {
   total: { label: "Gasto", color: "hsl(var(--chart-2))" },
 };
 
-export function CostCenterRankingChart({ data }: { data: { costCenter: string; total: number }[] }) {
+export function SectorSpendChart({ data }: { data: { sector: Sector; total: number }[] }) {
+  const chartData = data.map((entry) => ({ label: SECTOR_LABELS[entry.sector], total: entry.total }));
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Ranking de cost centers</CardTitle>
+        <CardTitle>Gasto por setor</CardTitle>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={COST_CENTER_CONFIG} className="h-64 w-full">
-          <BarChart data={data} layout="vertical" margin={{ left: 16 }}>
+        <ChartContainer config={SECTOR_SPEND_CONFIG} className="h-64 w-full">
+          <BarChart data={chartData} layout="vertical" margin={{ left: 16 }}>
             <CartesianGrid horizontal={false} strokeDasharray="3 3" />
             <XAxis
               type="number"
@@ -64,12 +66,66 @@ export function CostCenterRankingChart({ data }: { data: { costCenter: string; t
               axisLine={false}
               tickFormatter={(value) => formatCurrency(Number(value), "BRL")}
             />
-            <YAxis dataKey="costCenter" type="category" tickLine={false} axisLine={false} width={100} />
+            <YAxis dataKey="label" type="category" tickLine={false} axisLine={false} width={100} />
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent formatter={(value) => formatCurrency(Number(value), "BRL")} />}
             />
             <Bar dataKey="total" fill="var(--color-total)" radius={4} />
+          </BarChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  );
+}
+
+const SECTOR_VOLUME_CONFIG: ChartConfig = {
+  count: { label: "Solicitações", color: "hsl(var(--chart-3))" },
+};
+
+export function SectorVolumeChart({ data }: { data: { sector: Sector; count: number }[] }) {
+  const chartData = data.map((entry) => ({ label: SECTOR_LABELS[entry.sector], count: entry.count }));
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Volume de solicitações por setor</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={SECTOR_VOLUME_CONFIG} className="h-64 w-full">
+          <BarChart data={chartData}>
+            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+            <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={8} />
+            <YAxis tickLine={false} axisLine={false} allowDecimals={false} width={32} />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            <Bar dataKey="count" fill="var(--color-count)" radius={4} />
+          </BarChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  );
+}
+
+const SECTOR_HEADCOUNT_CONFIG: ChartConfig = {
+  count: { label: "Funcionários", color: "hsl(var(--chart-4))" },
+};
+
+export function SectorHeadcountChart({ data }: { data: { sector: Sector; count: number }[] }) {
+  const chartData = data.map((entry) => ({ label: SECTOR_LABELS[entry.sector], count: entry.count }));
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Funcionários por setor</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={SECTOR_HEADCOUNT_CONFIG} className="h-64 w-full">
+          <BarChart data={chartData}>
+            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+            <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={8} />
+            <YAxis tickLine={false} axisLine={false} allowDecimals={false} width={32} />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            <Bar dataKey="count" fill="var(--color-count)" radius={4} />
           </BarChart>
         </ChartContainer>
       </CardContent>

@@ -1,12 +1,15 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toAdminQueueRequest, type RequestRowWithEmployee } from "@/lib/requests-mapper";
+import { toEmployee, type EmployeeRow } from "@/lib/employees-mapper";
 import {
   avgApprovalTimeHours,
   complianceRate,
+  headcountBySector,
   monthlySpend,
   recentOutOfPolicy,
   requestsByStatus,
-  spendByCostCenter,
+  requestVolumeBySector,
+  spendBySector,
   spendVsPreviousMonth,
   tripPurposeBreakdown,
 } from "@/lib/admin-analytics";
@@ -14,7 +17,9 @@ import { StatCards } from "@/components/admin/stat-cards";
 import { SpendChart } from "@/components/admin/spend-chart";
 import { OutOfPolicyPanel } from "@/components/admin/out-of-policy-panel";
 import {
-  CostCenterRankingChart,
+  SectorHeadcountChart,
+  SectorSpendChart,
+  SectorVolumeChart,
   StatusVolumeChart,
   TripPurposeChart,
 } from "@/components/admin/spend-breakdown-charts";
@@ -24,10 +29,16 @@ export default async function AdminDashboardPage() {
   const supabase = createSupabaseServerClient();
   const { data: rows } = await supabase
     .from("requests")
-    .select("*, profiles(full_name)")
+    .select("*, profiles(full_name, cost_center)")
     .order("created_at", { ascending: true });
 
+  const { data: employeeRows } = await supabase
+    .from("profiles")
+    .select("id, full_name, email, role, status, cost_center, created_at");
+
   const requests = ((rows ?? []) as RequestRowWithEmployee[]).map(toAdminQueueRequest);
+  const employees = ((employeeRows ?? []) as EmployeeRow[]).map(toEmployee);
+  const headcount = headcountBySector(employees);
 
   if (requests.length === 0) {
     return (
@@ -43,7 +54,8 @@ export default async function AdminDashboardPage() {
   const compliance = complianceRate(requests);
   const avgApproval = avgApprovalTimeHours(requests);
   const statusVolume = requestsByStatus(requests);
-  const costCenterRanking = spendByCostCenter(requests);
+  const sectorSpend = spendBySector(requests);
+  const sectorVolume = requestVolumeBySector(requests);
   const tripPurpose = tripPurposeBreakdown(requests);
   const outOfPolicy = recentOutOfPolicy(requests);
 
@@ -68,8 +80,13 @@ export default async function AdminDashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <StatusVolumeChart data={statusVolume} />
-        <CostCenterRankingChart data={costCenterRanking} />
+        <SectorSpendChart data={sectorSpend} />
         <TripPurposeChart data={tripPurpose} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <SectorVolumeChart data={sectorVolume} />
+        <SectorHeadcountChart data={headcount} />
       </div>
     </div>
   );
