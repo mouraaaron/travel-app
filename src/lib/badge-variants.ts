@@ -85,3 +85,24 @@ const TIMELINE_LABELS: Record<TravelRequestEvent["kind"], string> = {
 export function getTravelRequestTimelineLabel(kind: TravelRequestEvent["kind"]): string {
   return TIMELINE_LABELS[kind];
 }
+
+export type EmployeeRole = "employee" | "admin";
+export type EmployeeStatus = "active" | "inactive";
+
+const ROLE_BADGES: Record<EmployeeRole, BadgeSpec> = {
+  employee: { label: "Funcionário", variant: "secondary" },
+  admin: { label: "Admin", variant: "default" },
+};
+
+export function getRoleBadge(role: EmployeeRole): BadgeSpec {
+  return ROLE_BADGES[role];
+}
+
+const EMPLOYEE_STATUS_BADGES: Record<EmployeeStatus, BadgeSpec> = {
+  active: { label: "Ativo", variant: "success" },
+  inactive: { label: "Inativo", variant: "destructive" },
+};
+
+export function getEmployeeStatusBadge(status: EmployeeStatus): BadgeSpec {
+  return EMPLOYEE_STATUS_BADGES[status];
+}

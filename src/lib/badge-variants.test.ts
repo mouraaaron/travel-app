@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   getDuffelFlagBadges,
   getDuffelPolicyBadge,
+  getEmployeeStatusBadge,
   getFlagBadges,
   getPolicyBadge,
+  getRoleBadge,
   getStatusBadge,
   getTravelRequestStatusBadge,
   getTravelRequestTimelineLabel,
@@ -132,5 +134,23 @@ describe("getTravelRequestTimelineLabel", () => {
     ["cancelled", "Cancelada"],
   ] as const)("maps %s to %s", (kind, label) => {
     expect(getTravelRequestTimelineLabel(kind)).toBe(label);
+  });
+});
+
+describe("getRoleBadge", () => {
+  it.each([
+    ["employee", "Funcionário", "secondary"],
+    ["admin", "Admin", "default"],
+  ] as const)("maps %s to { %s, %s }", (role, label, variant) => {
+    expect(getRoleBadge(role)).toEqual({ label, variant });
+  });
+});
+
+describe("getEmployeeStatusBadge", () => {
+  it.each([
+    ["active", "Ativo", "success"],
+    ["inactive", "Inativo", "destructive"],
+  ] as const)("maps %s to { %s, %s }", (status, label, variant) => {
+    expect(getEmployeeStatusBadge(status)).toEqual({ label, variant });
   });
 });
