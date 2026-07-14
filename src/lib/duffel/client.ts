@@ -1,4 +1,5 @@
 import type { FlightOffer, SearchCriteria } from "../types";
+import { getRateToBRL } from "../currency/exchange-rate";
 import { mapDuffelOfferToFlightOffer } from "./map-offer";
 import type { DuffelErrorResponse, DuffelOfferRequestResponse } from "./types";
 
@@ -40,5 +41,14 @@ export async function searchFlights(criteria: SearchCriteria): Promise<FlightOff
   }
 
   const json = (await response.json()) as DuffelOfferRequestResponse;
-  return json.data.offers.map((offer) => mapDuffelOfferToFlightOffer(offer, criteria));
+
+  const currencies = Array.from(new Set(json.data.offers.map((offer) => offer.total_currency)));
+  const rates = new Map<string, number>();
+  for (const currency of currencies) {
+    rates.set(currency, await getRateToBRL(currency));
+  }
+
+  return json.data.offers.map((offer) =>
+    mapDuffelOfferToFlightOffer(offer, criteria, rates.get(offer.total_currency) ?? 1)
+  );
 }
