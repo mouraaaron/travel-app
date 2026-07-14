@@ -1,12 +1,17 @@
 import type { CabinClass, FlightOffer, OfferConditionDetail, OfferSegment, OfferSlice, SearchCriteria } from "../types";
 import type { DuffelRawConditionDetail, DuffelRawOffer, DuffelRawSlice } from "./types";
 
-function mapConditionDetail(raw: DuffelRawConditionDetail | null): OfferConditionDetail {
+function mapConditionDetail(
+  raw: DuffelRawConditionDetail | null,
+  rateToBRL: number
+): OfferConditionDetail {
   if (!raw) return { allowed: false };
   return {
     allowed: raw.allowed,
-    penalty_amount: raw.penalty_amount ?? undefined,
-    penalty_currency: raw.penalty_currency ?? undefined,
+    penalty_amount: raw.penalty_amount
+      ? (Number(raw.penalty_amount) * rateToBRL).toFixed(2)
+      : undefined,
+    penalty_currency: raw.penalty_amount ? "BRL" : undefined,
   };
 }
 
@@ -49,7 +54,8 @@ function mapSlice(raw: DuffelRawSlice): OfferSlice {
 
 export function mapDuffelOfferToFlightOffer(
   raw: DuffelRawOffer,
-  criteria: SearchCriteria
+  criteria: SearchCriteria,
+  rateToBRL: number
 ): FlightOffer {
   const slices = raw.slices.map(mapSlice);
   const firstSlice = slices[0];
@@ -76,8 +82,8 @@ export function mapDuffelOfferToFlightOffer(
     airline: raw.owner.name,
     stops: (firstSlice?.segments.length ?? 1) - 1,
     refundable: raw.conditions.refund_before_departure?.allowed ?? false,
-    totalAmount: Number(raw.total_amount),
-    currency: raw.total_currency,
+    totalAmount: Number(raw.total_amount) * rateToBRL,
+    currency: "BRL",
     expiresAt: raw.expires_at,
     owner: {
       iata_code: raw.owner.iata_code,
@@ -87,8 +93,8 @@ export function mapDuffelOfferToFlightOffer(
     },
     slices,
     conditions: {
-      refund_before_departure: mapConditionDetail(raw.conditions.refund_before_departure),
-      change_before_departure: mapConditionDetail(raw.conditions.change_before_departure),
+      refund_before_departure: mapConditionDetail(raw.conditions.refund_before_departure, rateToBRL),
+      change_before_departure: mapConditionDetail(raw.conditions.change_before_departure, rateToBRL),
     },
     passengerIdentityDocumentsRequired: raw.passenger_identity_documents_required,
     totalEmissionsKg: raw.total_emissions_kg ? Number(raw.total_emissions_kg) : undefined,

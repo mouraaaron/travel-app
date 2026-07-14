@@ -60,7 +60,7 @@ const RAW_OFFER: DuffelRawOffer = {
 
 describe("mapDuffelOfferToFlightOffer", () => {
   it("maps the flat legacy fields from the raw Duffel offer", () => {
-    const offer = mapDuffelOfferToFlightOffer(RAW_OFFER, CRITERIA);
+    const offer = mapDuffelOfferToFlightOffer(RAW_OFFER, CRITERIA, 1);
 
     expect(offer.id).toBe("off_00009hj8QQBiixQQOfvL");
     expect(offer.origin).toBe("GRU");
@@ -75,7 +75,7 @@ describe("mapDuffelOfferToFlightOffer", () => {
   });
 
   it("maps the Duffel-shaped fields (slices, owner, conditions)", () => {
-    const offer = mapDuffelOfferToFlightOffer(RAW_OFFER, CRITERIA);
+    const offer = mapDuffelOfferToFlightOffer(RAW_OFFER, CRITERIA, 1);
 
     expect(offer.slices).toHaveLength(1);
     expect(offer.slices?.[0].segments[0].baggages).toEqual([
@@ -111,8 +111,30 @@ describe("mapDuffelOfferToFlightOffer", () => {
       ],
     };
 
-    const offer = mapDuffelOfferToFlightOffer(roundTripOffer, roundTripCriteria);
+    const offer = mapDuffelOfferToFlightOffer(roundTripOffer, roundTripCriteria, 1);
     expect(offer.origin).toBe("GRU");
     expect(offer.destination).toBe("JFK");
+  });
+});
+
+describe("mapDuffelOfferToFlightOffer currency conversion", () => {
+  it("converts totalAmount and penalty_amount using the given exchange rate", () => {
+    const usdOffer: DuffelRawOffer = {
+      ...RAW_OFFER,
+      total_amount: "500.00",
+      total_currency: "USD",
+      conditions: {
+        refund_before_departure: { allowed: false, penalty_amount: null, penalty_currency: null },
+        change_before_departure: { allowed: true, penalty_amount: "150.00", penalty_currency: "USD" },
+      },
+    };
+
+    const offer = mapDuffelOfferToFlightOffer(usdOffer, CRITERIA, 5.5);
+
+    expect(offer.totalAmount).toBe(2750);
+    expect(offer.currency).toBe("BRL");
+    expect(offer.conditions?.change_before_departure.penalty_amount).toBe("825.00");
+    expect(offer.conditions?.change_before_departure.penalty_currency).toBe("BRL");
+    expect(offer.conditions?.refund_before_departure.penalty_amount).toBeUndefined();
   });
 });
