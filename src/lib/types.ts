@@ -26,6 +26,7 @@ export interface FlightOffer {
   availableServices?: AvailableService[];
   fareBrandName?: string;
   longestSegmentHours?: number;
+  rateToBRL?: number;
 }
 
 export interface StayOffer {

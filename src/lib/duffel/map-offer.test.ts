@@ -133,6 +133,7 @@ describe("mapDuffelOfferToFlightOffer currency conversion", () => {
 
     expect(offer.totalAmount).toBe(2750);
     expect(offer.currency).toBe("BRL");
+    expect(offer.rateToBRL).toBe(5.5);
     expect(offer.conditions?.change_before_departure.penalty_amount).toBe("825.00");
     expect(offer.conditions?.change_before_departure.penalty_currency).toBe("BRL");
     expect(offer.conditions?.refund_before_departure.penalty_amount).toBeUndefined();

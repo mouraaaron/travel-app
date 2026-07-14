@@ -84,6 +84,7 @@ export function mapDuffelOfferToFlightOffer(
     refundable: raw.conditions.refund_before_departure?.allowed ?? false,
     totalAmount: Number(raw.total_amount) * rateToBRL,
     currency: "BRL",
+    rateToBRL,
     expiresAt: raw.expires_at,
     owner: {
       iata_code: raw.owner.iata_code,
