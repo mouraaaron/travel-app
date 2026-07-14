@@ -123,6 +123,17 @@ export const schemaTables: SchemaTable[] = [
       { name: "updated_at", type: "timestamptz", note: "default now()" },
     ],
   },
+  {
+    id: "exchange_rates",
+    name: "exchange_rates",
+    rls: true,
+    note: "Cache global de cotação de moeda estrangeira → BRL, usado para converter os valores retornados pela Duffel. Não pertence a nenhuma organização.",
+    columns: [
+      { name: "currency", type: "text", flags: ["pk"], note: "ex.: 'USD'" },
+      { name: "rate_to_brl", type: "numeric" },
+      { name: "fetched_at", type: "timestamptz", note: "default now()" },
+    ],
+  },
 ];
 
 export const schemaEdges: SchemaEdge[] = [

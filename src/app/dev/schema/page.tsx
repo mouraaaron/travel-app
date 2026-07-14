@@ -22,6 +22,7 @@ const positions: Record<string, { x: number; y: number }> = {
   profiles: { x: 40, y: 320 },
   requests: { x: 620, y: 340 },
   policy_rules: { x: 1140, y: 340 },
+  exchange_rates: { x: 1140, y: 40 },
 };
 
 export default function DatabaseSchemaPage() {
