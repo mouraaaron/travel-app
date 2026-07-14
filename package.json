@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "seed": "tsx --env-file=.env.local scripts/seed-demo-data.ts"
+    "seed": "tsx --env-file=.env.local scripts/seed-demo-data.ts",
+    "backfill-usd-requests": "tsx --env-file=.env.local scripts/backfill-usd-requests-to-brl.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
