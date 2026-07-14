@@ -20,7 +20,10 @@ export async function getRateToBRL(currency: string): Promise<number> {
     .maybeSingle();
 
   if (cached && isFromToday(cached.fetched_at)) {
-    return Number(cached.rate_to_brl);
+    const rate = Number(cached.rate_to_brl);
+    if (Number.isFinite(rate)) {
+      return rate;
+    }
   }
 
   const liveRate = await fetchLiveRate(currency);
@@ -34,7 +37,10 @@ export async function getRateToBRL(currency: string): Promise<number> {
   }
 
   if (cached) {
-    return Number(cached.rate_to_brl);
+    const rate = Number(cached.rate_to_brl);
+    if (Number.isFinite(rate)) {
+      return rate;
+    }
   }
 
   return FALLBACK_RATE_TO_BRL;
