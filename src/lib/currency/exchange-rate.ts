@@ -12,38 +12,51 @@ const FETCH_TIMEOUT_MS = 3000;
 export async function getRateToBRL(currency: string): Promise<number> {
   if (currency === "BRL") return 1;
 
-  const supabase = createSupabaseServerClient();
-  const { data: cached } = await supabase
-    .from("exchange_rates")
-    .select("rate_to_brl, fetched_at")
-    .eq("currency", currency)
-    .maybeSingle();
+  // Rede de segurança de última instância: a busca de voos nunca pode falhar
+  // por causa da cotação de câmbio, então qualquer exceção inesperada aqui
+  // (ex.: falha de rede ao chamar o Supabase, ou createSupabaseServerClient()
+  // lançando em algum contexto) cai para o valor fixo em vez de propagar.
+  try {
+    const supabase = createSupabaseServerClient();
+    const { data: cached } = await supabase
+      .from("exchange_rates")
+      .select("rate_to_brl, fetched_at")
+      .eq("currency", currency)
+      .maybeSingle();
 
-  if (cached && isFromToday(cached.fetched_at)) {
-    const rate = Number(cached.rate_to_brl);
-    if (Number.isFinite(rate)) {
-      return rate;
+    if (cached && isFromToday(cached.fetched_at)) {
+      const rate = Number(cached.rate_to_brl);
+      if (Number.isFinite(rate)) {
+        return rate;
+      }
     }
-  }
 
-  const liveRate = await fetchLiveRate(currency);
-  if (liveRate !== null) {
-    await supabase.from("exchange_rates").upsert({
-      currency,
-      rate_to_brl: liveRate,
-      fetched_at: new Date().toISOString(),
-    });
-    return liveRate;
-  }
-
-  if (cached) {
-    const rate = Number(cached.rate_to_brl);
-    if (Number.isFinite(rate)) {
-      return rate;
+    const liveRate = await fetchLiveRate(currency);
+    if (liveRate !== null) {
+      try {
+        await supabase.from("exchange_rates").upsert({
+          currency,
+          rate_to_brl: liveRate,
+          fetched_at: new Date().toISOString(),
+        });
+      } catch {
+        // Falha ao gravar o cache não deve degradar o resultado da busca:
+        // já temos uma cotação boa em mãos, então seguimos com ela.
+      }
+      return liveRate;
     }
-  }
 
-  return FALLBACK_RATE_TO_BRL;
+    if (cached) {
+      const rate = Number(cached.rate_to_brl);
+      if (Number.isFinite(rate)) {
+        return rate;
+      }
+    }
+
+    return FALLBACK_RATE_TO_BRL;
+  } catch {
+    return FALLBACK_RATE_TO_BRL;
+  }
 }
 
 function isFromToday(fetchedAt: string): boolean {
