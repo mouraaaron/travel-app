@@ -78,6 +78,7 @@ export default function ReviewPage() {
         offer_id: offer.id,
         total_amount: String(offer.totalAmount),
         total_currency: offer.currency,
+        exchange_rate_to_brl: offer.rateToBRL,
         owner: {
           iata_code: offer.owner?.iata_code ?? "",
           name: offer.airline,
