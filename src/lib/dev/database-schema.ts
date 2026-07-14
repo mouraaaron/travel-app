@@ -92,6 +92,7 @@ export const schemaTables: SchemaTable[] = [
       },
       { name: "total_amount", type: "numeric" },
       { name: "total_currency", type: "text" },
+      { name: "exchange_rate_to_brl", type: "numeric", nullable: true },
       { name: "created_at", type: "timestamptz", note: "default now()" },
       { name: "search_criteria", type: "jsonb" },
       { name: "selected_offer_snapshot", type: "jsonb" },
