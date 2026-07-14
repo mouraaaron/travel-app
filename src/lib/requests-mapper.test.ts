@@ -8,6 +8,7 @@ const ROW: RequestRow = {
   status: "pending_admin",
   total_amount: 2850,
   total_currency: "BRL",
+  exchange_rate_to_brl: 1,
   created_at: "2026-07-10T14:00:00Z",
   search_criteria: {
     slices: [{ origin: "GRU", destination: "JFK", departure_date: "2026-08-10" }],
@@ -18,6 +19,7 @@ const ROW: RequestRow = {
     offer_id: "off_1",
     total_amount: "2850.00",
     total_currency: "BRL",
+    exchange_rate_to_brl: 1,
     owner: { iata_code: "LA", name: "LATAM", logo_symbol_url: "" },
     slices: [],
     conditions: {

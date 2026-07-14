@@ -214,6 +214,7 @@ export interface SelectedOfferSnapshot {
   offer_id: string;
   total_amount: string;
   total_currency: string;
+  exchange_rate_to_brl?: number;
   owner: { iata_code: string; name: string; logo_symbol_url: string };
   slices: Array<{
     origin: string;

@@ -8,6 +8,7 @@ export interface RequestRow {
   status: TravelRequest["status"];
   total_amount: number;
   total_currency: string;
+  exchange_rate_to_brl: number | null;
   created_at: string;
   search_criteria: TravelRequest["search_criteria"];
   selected_offer_snapshot: TravelRequest["selected_offer_snapshot"];
