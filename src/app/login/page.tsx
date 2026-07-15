@@ -35,23 +35,28 @@ export default function LoginPage() {
 
   async function onSubmit(values: LoginFormValues) {
     setSubmitting(true);
-    const supabase = createSupabaseBrowserClient();
-    const { data, error } = await supabase.auth.signInWithPassword(values);
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase.auth.signInWithPassword(values);
 
-    if (error || !data.user) {
-      toast.error("Email ou senha inválidos.");
+      if (error || !data.user) {
+        toast.error("Email ou senha inválidos.");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+
+      router.push(profile?.role === "admin" ? "/admin" : "/");
+      router.refresh();
+    } catch {
+      toast.error("Não foi possível entrar. Tente novamente.");
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", data.user.id)
-      .single();
-
-    router.push(profile?.role === "admin" ? "/admin" : "/");
-    router.refresh();
   }
 
   function fillDemo(email: string, password: string) {
