@@ -154,6 +154,8 @@ export function OnsiteWeekDetail({
                       >
                         Solicitação aprovada
                       </Link>
+                    ) : onsiteWeek.status === "cancelled" ? (
+                      <span className="text-destructive">Não ocorreu</span>
                     ) : (
                       <span className="text-destructive">{outcome.error_message ?? "Falhou"}</span>
                     )}
