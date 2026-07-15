@@ -117,6 +117,27 @@ export function requestVolumeBySector(
   }));
 }
 
+export function avgOnsiteWeekCostBySector(
+  requests: AdminQueueRequest[]
+): { sector: Sector; average: number }[] {
+  const totals = new Map<Sector, { sum: number; count: number }>(
+    SECTORS.map((sector) => [sector, { sum: 0, count: 0 }])
+  );
+  for (const request of requests) {
+    if (!request.onsite_week_id) continue;
+    if (!isRealizedSpend(request)) continue;
+    const key = request.corporate.cost_center as Sector;
+    const entry = totals.get(key);
+    if (!entry) continue;
+    entry.sum += requestSpend(request);
+    entry.count += 1;
+  }
+  return SECTORS.map((sector) => {
+    const entry = totals.get(sector)!;
+    return { sector, average: entry.count === 0 ? 0 : entry.sum / entry.count };
+  });
+}
+
 export function headcountBySector(employees: Employee[]): { sector: Sector; count: number }[] {
   return SECTORS.map((sector) => ({
     sector,
