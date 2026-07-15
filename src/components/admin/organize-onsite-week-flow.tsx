@@ -139,8 +139,8 @@ export function OrganizeOnsiteWeekFlow() {
                 <Input type="date" value={weekEndDate} onChange={(e) => setWeekEndDate(e.target.value)} />
               </div>
             </div>
-            <Button disabled={loadingPreview} onClick={handlePreview} className="w-fit">
-              {loadingPreview ? "Carregando..." : "Avançar"}
+            <Button loading={loadingPreview} onClick={handlePreview} className="w-fit">
+              Avançar
             </Button>
           </CardContent>
         </Card>
@@ -207,8 +207,8 @@ export function OrganizeOnsiteWeekFlow() {
         <Button variant="link" onClick={() => setStep("form")}>
           Voltar
         </Button>
-        <Button disabled={confirming} onClick={handleConfirm}>
-          {confirming ? "Buscando voos e criando solicitações..." : "Confirmar e buscar voos"}
+        <Button loading={confirming} onClick={handleConfirm}>
+          Confirmar e buscar voos
         </Button>
       </div>
     </div>
