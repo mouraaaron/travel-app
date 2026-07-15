@@ -37,8 +37,11 @@ const requestCreateSchema = z.object({
   corporate: z.object({
     trip_purpose: z.enum(["client_meeting", "conference", "internal_meeting", "training", "other"]),
     project_code: z.string().optional(),
-    business_justification: z.string(),
-    out_of_policy_justification: z.string().optional(),
+    business_justification: z.string().min(10, "Justificativa corporativa deve ter no mínimo 10 caracteres."),
+    out_of_policy_justification: z
+      .string()
+      .min(10, "Justificativa de fora da política deve ter no mínimo 10 caracteres.")
+      .optional(),
   }),
   policy_evaluation: z.object({
     compliant: z.boolean(),
