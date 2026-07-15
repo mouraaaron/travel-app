@@ -20,12 +20,38 @@
 2. **Âncora do morph = avatar + nome**, não a linha inteira. Uma `<tr>` transformada via FLIP distorce células e bordas; o elemento com `layoutId` compartilhado é o par avatar+nome, que voa da célula da tabela até o cabeçalho do painel de relatório.
 3. **Overlay cobre só a área de conteúdo** (`<main>`, respeitando `lg:pl-[248px]` da sidebar) — não a viewport inteira. A sidebar (`AppSidebar`) continua visível e clicável durante a transição.
 4. **Dependência nova:** `framer-motion`. Sem ela, `layoutId` (a técnica de shared-element) exigiria FLIP manual (medir `getBoundingClientRect`, aplicar `transform` inicial, animar via CSS) — mais código para manter e mais frágil em resize/scroll.
-5. **Coreografia de abertura** (~400ms total):
-   - Demais linhas da tabela + cabeçalho do card fazem fade-out + scale-down (~0.98) em ~150ms.
-   - Avatar+nome (`layoutId`) voa até o cabeçalho do painel via spring (`stiffness: 300, damping: 30`), não `ease` linear.
-   - Conteúdo do painel (abas + `EmployeeDetail`) entra com fade + slide-up (8–12px) com ~80ms de atraso em relação à âncora.
-   - **Fechamento é o inverso:** conteúdo do painel sai primeiro, âncora volta voando para a linha original, linhas da tabela reaparecem com fade-in + scale-up de volta a 1.
-6. **Tabela permanece montada** durante toda a transição (nunca desmonta), só fica oculta/atrás via `AnimatePresence`, para permitir a animação reversa ao fechar.
+5. **Tabela permanece montada** durante toda a transição (nunca desmonta), só fica oculta/atrás via `AnimatePresence`, para permitir a animação reversa ao fechar.
+6. A animação é o núcleo desta feature, não um detalhe cosmético opcional — ver seção dedicada "## Animação" abaixo, com os valores concretos que a implementação deve usar.
+
+## Animação
+
+Esta é a parte central da feature — a tabela e o painel são a "casca"; é a transição entre eles que entrega o efeito "continuity" pedido. Os valores abaixo são o contrato que a implementação (e o plano) devem seguir; não são exemplos ilustrativos.
+
+### Abertura (clique na linha) — ~400ms do gesto completo
+
+| Passo | O quê | Timing/curva | Framer Motion |
+|---|---|---|---|
+| 1 | Demais linhas da tabela + cabeçalho do card (`CardHeader`/`CardTitle` "Ranking de funcionários") | fade-out (`opacity: 1→0`) + scale-down (`scale: 1→0.98`) | `transition: { duration: 0.15, ease: "easeOut" }` |
+| 2 | Avatar+nome (`layoutId="employee-anchor-{id}"`) voa da célula da tabela até o cabeçalho do painel | spring, não `ease` linear — é o que dá a sensação de peso físico do iOS | `transition: { type: "spring", stiffness: 300, damping: 30 }` (aplicado via `MotionConfig transition={{ layout: {...} }}` ou prop `layout` no próprio `motion.div` da âncora) |
+| 3 | Conteúdo do painel (abas + `EmployeeDetail`) | fade-in (`opacity: 0→1`) + slide-up (`y: 10→0`), atrasado em relação à âncora — "conteúdo se constrói ao redor" | `transition: { duration: 0.25, delay: 0.08, ease: "easeOut" }` |
+
+### Fechamento (seta de voltar / Esc) — sequência invertida
+
+| Passo | O quê | Timing/curva |
+|---|---|---|
+| 1 | Conteúdo do painel sai primeiro | fade-out + `y: 0→10`, `duration: 0.2` |
+| 2 | Âncora (avatar+nome) voa de volta para a posição da linha original | mesmo spring (`stiffness: 300, damping: 30`) |
+| 3 | Linhas da tabela + cabeçalho do card reaparecem | fade-in + `scale: 0.98→1`, `duration: 0.15, delay: 0.05` (pequeno atraso para a âncora "pousar" antes do resto reaparecer) |
+
+### `prefers-reduced-motion`
+
+Quando `useReducedMotion()` (framer-motion) retorna `true`, **todas** as três etapas acima (abertura e fechamento) são substituídas por um único cross-fade de `duration: 0.1`, sem spring na âncora, sem scale das linhas, sem slide do conteúdo — a âncora simplesmente aparece/desaparece junto com o resto, sem animação de posição/tamanho.
+
+### Por que estes valores especificamente
+
+- `stiffness: 300, damping: 30` é uma configuração de spring "crítica-ish" (pouco ou nenhum overshoot/bounce) — adequada para um elemento de UI que muda de tamanho drasticamente (linha de tabela → cabeçalho de painel); mais rígido que isso (`stiffness` maior) fica abrupto, mais solto (`damping` menor) faria o avatar "balançar" ao chegar, o que não combina com um contexto administrativo/dados financeiros.
+- O atraso de `80ms` no conteúdo do painel (abertura) e a ausência de atraso equivalente no fechamento do conteúdo (fecha imediatamente) é intencional: abrir deve parecer que o conteúdo "emerge depois" da âncora chegar; fechar deve parecer responsivo (não fazer o admin esperar o conteúdo sumir antes de começar a sair da tela).
+- Duração total de ~400ms (abertura) é o intervalo comumente citado como "rápido o suficiente para não parecer lento, lento o suficiente para a relação espacial entre lista e detalhe ser perceptível" — abaixo de ~250ms o morph vira um "pulo" que não comunica continuidade; acima de ~600ms parece arrastado para uma ação repetida com frequência (o admin vai abrir/fechar relatórios várias vezes por sessão).
 
 ## Arquitetura
 
@@ -72,7 +98,7 @@
 
 - **Esc fecha o painel:** listener de `keydown` (via `useEffect` no `EmployeeReportPanel` ou hook compartilhado) chama `onBack` quando `selectedEmployeeId !== null`.
 - **Foco:** ao abrir, mover foco para o botão de voltar (`ref.current?.focus()` num `useEffect`); ao fechar, retornar foco para a `TableRow` selecionada (precisa de `ref` por linha, guardado num `Map` ou `ref` único atualizado no clique).
-- **`prefers-reduced-motion`:** usar `useReducedMotion()` do framer-motion; quando `true`, todas as transições acima caem para um cross-fade simples de ~100ms, sem spring da âncora nem scale/slide das outras linhas.
+- **`prefers-reduced-motion`:** ver seção "## Animação" acima para o comportamento exato (`useReducedMotion()` do framer-motion).
 - **Performance:** `layoutId` só é atribuído à linha correspondente a `selectedEmployeeId` (nunca a todas as linhas simultaneamente), evitando que o framer-motion precise rastrear layout de todas as linhas da tabela a cada render.
 
 ## Testes
