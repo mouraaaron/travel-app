@@ -20,14 +20,14 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     .single();
   if (!adminProfile || adminProfile.role !== "admin") {
     return NextResponse.json(
-      { error: "Apenas administradores podem alterar o papel de um funcionário." },
+      { error: "Apenas administradores podem alterar a função de um funcionário." },
       { status: 403 }
     );
   }
 
   if (params.id === user.id) {
     return NextResponse.json(
-      { error: "Você não pode alterar seu próprio papel." },
+      { error: "Você não pode alterar sua própria função." },
       { status: 400 }
     );
   }
@@ -35,7 +35,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const body = await request.json().catch(() => null);
   const role = body?.role;
   if (!VALID_ROLES.includes(role)) {
-    return NextResponse.json({ error: "Papel inválido." }, { status: 400 });
+    return NextResponse.json({ error: "Função inválida." }, { status: 400 });
   }
 
   const { data: updated, error } = await supabase
@@ -46,7 +46,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     .single();
 
   if (error || !updated) {
-    return NextResponse.json({ error: "Não foi possível alterar o papel." }, { status: 500 });
+    return NextResponse.json({ error: "Não foi possível alterar a função." }, { status: 500 });
   }
 
   return NextResponse.json({ employee: updated });

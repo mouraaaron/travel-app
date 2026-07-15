@@ -38,13 +38,13 @@ export function EmployeeActions({ employeeId, role, status, costCenter, isSelf }
       });
       const body = await response.json().catch(() => null);
       if (!response.ok) {
-        toast.error(body?.error ?? "Não foi possível alterar o papel.");
+        toast.error(body?.error ?? "Não foi possível alterar a função.");
         return;
       }
-      toast.success("Papel atualizado.");
+      toast.success("Função atualizada.");
       router.refresh();
     } catch {
-      toast.error("Não foi possível alterar o papel.");
+      toast.error("Não foi possível alterar a função.");
     } finally {
       setSavingRole(false);
     }
@@ -98,7 +98,7 @@ export function EmployeeActions({ employeeId, role, status, costCenter, isSelf }
   return (
     <div className="flex flex-col gap-4 rounded-md border border-border bg-card p-5">
       <div className="flex flex-col gap-1.5">
-        <Label>Papel</Label>
+        <Label>Função</Label>
         <Select
           value={role}
           disabled={isSelf || savingRole}
@@ -106,7 +106,7 @@ export function EmployeeActions({ employeeId, role, status, costCenter, isSelf }
         >
           <SelectTrigger
             className="w-[200px]"
-            title={isSelf ? "Você não pode alterar seu próprio papel" : undefined}
+            title={isSelf ? "Você não pode alterar sua própria função" : undefined}
           >
             <SelectValue />
           </SelectTrigger>

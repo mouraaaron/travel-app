@@ -67,10 +67,10 @@ export function EmployeesTable({ employees }: { employees: Employee[] }) {
         </div>
         <Select value={roleFilter} onValueChange={(value) => setRoleFilter(value as RoleFilter)}>
           <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Papel" />
+            <SelectValue placeholder="Função" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os papéis</SelectItem>
+            <SelectItem value="all">Todas as funções</SelectItem>
             <SelectItem value="employee">Funcionário</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
           </SelectContent>
@@ -108,7 +108,7 @@ export function EmployeesTable({ employees }: { employees: Employee[] }) {
             <TableRow>
               <TableHead>Funcionário</TableHead>
               <TableHead>E-mail</TableHead>
-              <TableHead>Papel</TableHead>
+              <TableHead>Função</TableHead>
               <TableHead>Setor</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
