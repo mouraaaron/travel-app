@@ -3,12 +3,7 @@ import { SECTORS, type Sector } from "./badge-variants";
 import type { AdminQueueRequest } from "./requests-mapper";
 import type { TravelRequestStatus, TripPurpose } from "./types";
 
-const REALIZED_SPEND_STATUSES: TravelRequestStatus[] = [
-  "pending_admin",
-  "approved",
-  "needs_review",
-  "confirmed",
-];
+const REALIZED_SPEND_STATUSES: TravelRequestStatus[] = ["approved", "confirmed"];
 
 function requestSpend(request: AdminQueueRequest): number {
   return Number(request.selected_offer_snapshot.total_amount);
@@ -181,14 +176,4 @@ export function avgApprovalTimeHours(requests: AdminQueueRequest[]): number {
 
   if (durationsHours.length === 0) return 0;
   return durationsHours.reduce((sum, h) => sum + h, 0) / durationsHours.length;
-}
-
-export function recentOutOfPolicy(
-  requests: AdminQueueRequest[],
-  limit = 5
-): AdminQueueRequest[] {
-  return [...requests]
-    .filter((r) => !r.policy_evaluation.compliant)
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, limit);
 }

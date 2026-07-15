@@ -3,7 +3,6 @@ import { monthlySpend, spendVsPreviousMonth } from "./admin-analytics";
 import { complianceRate, outOfPolicyByEmployee, spendBySector, spendByEmployee } from "./admin-analytics";
 import { requestsByStatus, tripPurposeBreakdown, requestVolumeBySector, headcountBySector } from "./admin-analytics";
 import { avgApprovalTimeHours } from "./admin-analytics";
-import { recentOutOfPolicy } from "./admin-analytics";
 import type { AdminQueueRequest } from "./requests-mapper";
 
 function makeRequest(overrides: Partial<AdminQueueRequest> = {}): AdminQueueRequest {
@@ -91,6 +90,18 @@ describe("monthlySpend", () => {
   it("returns 6 zero buckets when there are no requests", () => {
     expect(monthlySpend([])).toHaveLength(6);
     expect(monthlySpend([]).every((bucket) => bucket.total === 0)).toBe(true);
+  });
+
+  it("excludes pending_admin and needs_review requests from realized spend", () => {
+    const requests = [
+      makeRequest({ id: "a", created_at: "2026-07-05T10:00:00Z", status: "approved", selected_offer_snapshot: { ...makeRequest().selected_offer_snapshot, total_amount: "500.00" } }),
+      makeRequest({ id: "b", created_at: "2026-07-06T10:00:00Z", status: "pending_admin", selected_offer_snapshot: { ...makeRequest().selected_offer_snapshot, total_amount: "2000.00" } }),
+      makeRequest({ id: "c", created_at: "2026-07-07T10:00:00Z", status: "needs_review", selected_offer_snapshot: { ...makeRequest().selected_offer_snapshot, total_amount: "3000.00" } }),
+    ];
+
+    const result = monthlySpend(requests);
+
+    expect(result.at(-1)).toEqual({ month: "Jul/26", total: 500 });
   });
 });
 
@@ -282,27 +293,5 @@ describe("avgApprovalTimeHours", () => {
   it("returns 0 when no request has both a created and a resolution event", () => {
     const requests = [makeRequest({ events: [{ at: "2026-07-01T00:00:00Z", kind: "created" }] })];
     expect(avgApprovalTimeHours(requests)).toBe(0);
-  });
-});
-
-describe("recentOutOfPolicy", () => {
-  it("returns the N most recent non-compliant requests, newest first", () => {
-    const compliant = makeRequest().policy_evaluation;
-    const nonCompliant = { compliant: false, violations: [], flags: { international_travel: false, cost_above_threshold: true } };
-    const requests = [
-      makeRequest({ id: "a", created_at: "2026-07-01T00:00:00Z", policy_evaluation: nonCompliant }),
-      makeRequest({ id: "b", created_at: "2026-07-15T00:00:00Z", policy_evaluation: compliant }),
-      makeRequest({ id: "c", created_at: "2026-07-10T00:00:00Z", policy_evaluation: nonCompliant }),
-      makeRequest({ id: "d", created_at: "2026-07-05T00:00:00Z", policy_evaluation: nonCompliant }),
-    ];
-    expect(recentOutOfPolicy(requests, 2).map((r) => r.id)).toEqual(["c", "d"]);
-  });
-
-  it("defaults to a limit of 5", () => {
-    const nonCompliant = { compliant: false, violations: [], flags: { international_travel: false, cost_above_threshold: true } };
-    const requests = Array.from({ length: 8 }, (_, i) =>
-      makeRequest({ id: `r${i}`, created_at: `2026-07-${String(i + 1).padStart(2, "0")}T00:00:00Z`, policy_evaluation: nonCompliant })
-    );
-    expect(recentOutOfPolicy(requests)).toHaveLength(5);
   });
 });
