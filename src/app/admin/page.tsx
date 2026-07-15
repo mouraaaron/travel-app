@@ -1,10 +1,9 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toAdminQueueRequest, type RequestRowWithEmployee } from "@/lib/requests-mapper";
-import { toEmployee, type EmployeeRow } from "@/lib/employees-mapper";
 import {
   avgApprovalTimeHours,
+  avgOnsiteWeekCostBySector,
   complianceRate,
-  headcountBySector,
   monthlySpend,
   requestsByStatus,
   requestVolumeBySector,
@@ -15,7 +14,7 @@ import {
 import { StatCards } from "@/components/admin/stat-cards";
 import { SpendChart } from "@/components/admin/spend-chart";
 import {
-  SectorHeadcountChart,
+  AvgOnsiteWeekCostChart,
   SectorSpendChart,
   SectorVolumeChart,
   StatusVolumeChart,
@@ -30,13 +29,7 @@ export default async function AdminDashboardPage() {
     .select("*, profiles(full_name, cost_center)")
     .order("created_at", { ascending: true });
 
-  const { data: employeeRows } = await supabase
-    .from("profiles")
-    .select("id, full_name, email, role, status, cost_center, created_at");
-
   const requests = ((rows ?? []) as RequestRowWithEmployee[]).map(toAdminQueueRequest);
-  const employees = ((employeeRows ?? []) as EmployeeRow[]).map(toEmployee);
-  const headcount = headcountBySector(employees);
 
   if (requests.length === 0) {
     return (
@@ -55,6 +48,7 @@ export default async function AdminDashboardPage() {
   const sectorSpend = spendBySector(requests);
   const sectorVolume = requestVolumeBySector(requests);
   const tripPurpose = tripPurposeBreakdown(requests);
+  const avgOnsiteWeekCost = avgOnsiteWeekCostBySector(requests);
 
   return (
     <div className="flex flex-col gap-6">
@@ -78,7 +72,7 @@ export default async function AdminDashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <SectorVolumeChart data={sectorVolume} />
-        <SectorHeadcountChart data={headcount} />
+        <AvgOnsiteWeekCostChart data={avgOnsiteWeekCost} />
       </div>
     </div>
   );

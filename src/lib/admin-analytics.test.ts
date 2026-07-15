@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { monthlySpend, spendVsPreviousMonth } from "./admin-analytics";
 import { complianceRate, outOfPolicyByEmployee, spendBySector, spendByEmployee } from "./admin-analytics";
-import { requestsByStatus, tripPurposeBreakdown, requestVolumeBySector, headcountBySector, avgOnsiteWeekCostBySector } from "./admin-analytics";
+import { requestsByStatus, tripPurposeBreakdown, requestVolumeBySector, avgOnsiteWeekCostBySector } from "./admin-analytics";
 import { avgApprovalTimeHours } from "./admin-analytics";
 import type { AdminQueueRequest } from "./requests-mapper";
 
@@ -291,31 +291,6 @@ describe("avgOnsiteWeekCostBySector", () => {
       { sector: "marketing", average: 0 },
       { sector: "engineering", average: 0 },
       { sector: "founders", average: 0 },
-    ]);
-  });
-});
-
-describe("headcountBySector", () => {
-  it("counts employees per sector, in enum order, zero-filling sectors with no one in them", () => {
-    const travelProfileFields = {
-      origin_airport_code: null,
-      given_name: null,
-      family_name: null,
-      born_on: null,
-      gender: null,
-      title: null,
-      phone_number: null,
-    };
-    const employees = [
-      { id: "1", full_name: "A", email: "a@x.com", role: "employee" as const, status: "active" as const, cost_center: "engineering" as const, created_at: "2026-01-01T00:00:00Z", ...travelProfileFields },
-      { id: "2", full_name: "B", email: "b@x.com", role: "employee" as const, status: "active" as const, cost_center: "engineering" as const, created_at: "2026-01-01T00:00:00Z", ...travelProfileFields },
-      { id: "3", full_name: "C", email: "c@x.com", role: "admin" as const, status: "active" as const, cost_center: "founders" as const, created_at: "2026-01-01T00:00:00Z", ...travelProfileFields },
-    ];
-    expect(headcountBySector(employees)).toEqual([
-      { sector: "product", count: 0 },
-      { sector: "marketing", count: 0 },
-      { sector: "engineering", count: 2 },
-      { sector: "founders", count: 1 },
     ]);
   });
 });

@@ -1,4 +1,3 @@
-import type { Employee } from "./employees-mapper";
 import { SECTORS, type Sector } from "./badge-variants";
 import type { AdminQueueRequest } from "./requests-mapper";
 import type { TravelRequestStatus, TripPurpose } from "./types";
@@ -136,13 +135,6 @@ export function avgOnsiteWeekCostBySector(
     const entry = totals.get(sector)!;
     return { sector, average: entry.count === 0 ? 0 : entry.sum / entry.count };
   });
-}
-
-export function headcountBySector(employees: Employee[]): { sector: Sector; count: number }[] {
-  return SECTORS.map((sector) => ({
-    sector,
-    count: employees.filter((e) => e.cost_center === sector).length,
-  }));
 }
 
 const ALL_STATUSES: TravelRequestStatus[] = [
