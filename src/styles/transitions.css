@@ -148,6 +148,13 @@
   --stagger-stagger: 40ms;
   --stagger-blur: 3px;
   --stagger-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Button loading sweep */
+  --button-sweep-dur: 1600ms;
+  --button-sweep-ease: linear;
+  --button-sweep-width: 45%;
+  --button-sweep-blur: 2px;
+  --button-sweep-light: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.55) 50%, rgba(255, 255, 255, 0) 100%);
+  --button-sweep-dark: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.12) 50%, rgba(0, 0, 0, 0) 100%);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -225,4 +232,30 @@
 
 @media (prefers-reduced-motion: reduce) {
   .t-stagger-line { transition: none !important; opacity: 1; transform: none; filter: none; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Button loading sweep. A blurred band of light sweeps left-to-right across
+ * a button while `loading` is true. Rendered by <Button loading> when the
+ * sweep span is present in the DOM (see src/components/ui/button.tsx).
+ * ───────────────────────────────────────────────────────────────────────── */
+.t-button-sweep {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--button-sweep-width);
+  filter: blur(var(--button-sweep-blur));
+  pointer-events: none;
+  z-index: 1;
+  animation: t-button-sweep-move var(--button-sweep-dur) var(--button-sweep-ease) infinite;
+}
+.t-button-sweep--light { background: var(--button-sweep-light); }
+.t-button-sweep--dark { background: var(--button-sweep-dark); }
+
+@keyframes t-button-sweep-move {
+  0% { transform: translateX(-60%); }
+  100% { transform: translateX(160%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-button-sweep { display: none; }
 }
