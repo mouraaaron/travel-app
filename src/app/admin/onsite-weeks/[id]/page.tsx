@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toOnsiteWeek, type OnsiteWeekRow } from "@/lib/onsite-weeks-mapper";
-import { OnsiteWeekDetail } from "@/components/admin/onsite-week-detail";
+import { OnsiteWeekDetail, type RequestCost } from "@/components/admin/onsite-week-detail";
 import { NotFoundState } from "@/components/layout/not-found-state";
 
 export default async function OnsiteWeekDetailPage({ params }: { params: { id: string } }) {
@@ -18,5 +18,15 @@ export default async function OnsiteWeekDetailPage({ params }: { params: { id: s
     );
   }
 
-  return <OnsiteWeekDetail onsiteWeek={toOnsiteWeek(row as OnsiteWeekRow)} />;
+  const { data: requestRows } = await supabase
+    .from("requests")
+    .select("id, total_amount, total_currency")
+    .eq("onsite_week_id", params.id);
+
+  const requestCosts: Record<string, RequestCost> = {};
+  for (const request of requestRows ?? []) {
+    requestCosts[request.id] = { amount: request.total_amount, currency: request.total_currency };
+  }
+
+  return <OnsiteWeekDetail onsiteWeek={toOnsiteWeek(row as OnsiteWeekRow)} requestCosts={requestCosts} />;
 }

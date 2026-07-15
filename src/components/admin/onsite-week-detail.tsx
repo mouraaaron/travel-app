@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion, useReducedMotion } from "framer-motion";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -16,18 +18,45 @@ import {
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getOnsiteWeekStatusBadge, getSectorBadge, SECTOR_LABELS } from "@/lib/badge-variants";
-import { formatDate } from "@/lib/offer-format";
+import { formatCurrency, formatDate } from "@/lib/offer-format";
 import type { OnsiteWeek } from "@/lib/onsite-weeks-mapper";
 
-export function OnsiteWeekDetail({ onsiteWeek }: { onsiteWeek: OnsiteWeek }) {
+export interface RequestCost {
+  amount: number;
+  currency: string;
+}
+
+export function OnsiteWeekDetail({
+  onsiteWeek,
+  requestCosts,
+}: {
+  onsiteWeek: OnsiteWeek;
+  requestCosts: Record<string, RequestCost>;
+}) {
   const router = useRouter();
   const [retrying, setRetrying] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
 
   const statusBadge = getOnsiteWeekStatusBadge(onsiteWeek.status);
   const sectorBadge = getSectorBadge(onsiteWeek.sector);
   const failed = onsiteWeek.employee_outcomes.filter((o) => o.status === "failed");
+
+  const createdCosts = onsiteWeek.employee_outcomes
+    .filter((o) => o.status === "created" && o.request_id)
+    .map((o) => requestCosts[o.request_id as string])
+    .filter((cost): cost is RequestCost => cost !== undefined);
+  const totalCost = createdCosts.reduce((sum, cost) => sum + cost.amount, 0);
+  const totalCostCurrency = createdCosts[0]?.currency ?? "BRL";
+
+  const entranceMotionProps = shouldReduceMotion
+    ? {}
+    : {
+        initial: { opacity: 0, y: 10 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.25, delay: 0.08, ease: "easeOut" as const },
+      };
 
   async function handleRetry() {
     setRetrying(true);
@@ -89,33 +118,55 @@ export function OnsiteWeekDetail({ onsiteWeek }: { onsiteWeek: OnsiteWeek }) {
         </div>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Funcionário</TableHead>
-            <TableHead>Resultado</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {onsiteWeek.employee_outcomes.map((outcome) => (
-            <TableRow key={outcome.employee_id}>
-              <TableCell className="text-foreground">{outcome.employee_name}</TableCell>
-              <TableCell>
-                {outcome.status === "created" ? (
-                  <Link
-                    href={`/admin/requests/${outcome.request_id}`}
-                    className="text-emerald-700 hover:underline dark:text-emerald-300"
-                  >
-                    Solicitação aprovada
-                  </Link>
-                ) : (
-                  <span className="text-destructive">{outcome.error_message ?? "Falhou"}</span>
-                )}
-              </TableCell>
+      <motion.div {...entranceMotionProps} className="w-fit">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Custo total</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <span className="text-2xl font-semibold text-foreground">
+              {formatCurrency(totalCost, totalCostCurrency)}
+            </span>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      <motion.div {...entranceMotionProps}>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Funcionário</TableHead>
+              <TableHead>Resultado</TableHead>
+              <TableHead>Custo</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {onsiteWeek.employee_outcomes.map((outcome) => {
+              const cost = outcome.request_id ? requestCosts[outcome.request_id] : undefined;
+              return (
+                <TableRow key={outcome.employee_id}>
+                  <TableCell className="text-foreground">{outcome.employee_name}</TableCell>
+                  <TableCell>
+                    {outcome.status === "created" ? (
+                      <Link
+                        href={`/admin/requests/${outcome.request_id}`}
+                        className="text-emerald-700 hover:underline dark:text-emerald-300"
+                      >
+                        Solicitação aprovada
+                      </Link>
+                    ) : (
+                      <span className="text-destructive">{outcome.error_message ?? "Falhou"}</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-foreground">
+                    {cost ? formatCurrency(cost.amount, cost.currency) : "—"}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </motion.div>
 
       {onsiteWeek.status !== "cancelled" ? (
         <div className="flex items-center gap-2">
