@@ -6,7 +6,6 @@ import {
   complianceRate,
   headcountBySector,
   monthlySpend,
-  recentOutOfPolicy,
   requestsByStatus,
   requestVolumeBySector,
   spendBySector,
@@ -15,7 +14,6 @@ import {
 } from "@/lib/admin-analytics";
 import { StatCards } from "@/components/admin/stat-cards";
 import { SpendChart } from "@/components/admin/spend-chart";
-import { OutOfPolicyPanel } from "@/components/admin/out-of-policy-panel";
 import {
   SectorHeadcountChart,
   SectorSpendChart,
@@ -57,7 +55,6 @@ export default async function AdminDashboardPage() {
   const sectorSpend = spendBySector(requests);
   const sectorVolume = requestVolumeBySector(requests);
   const tripPurpose = tripPurposeBreakdown(requests);
-  const outOfPolicy = recentOutOfPolicy(requests);
 
   return (
     <div className="flex flex-col gap-6">
@@ -71,12 +68,7 @@ export default async function AdminDashboardPage() {
         totalRequests={requests.length}
       />
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <div className="xl:col-span-2">
-          <SpendChart data={monthly} />
-        </div>
-        <OutOfPolicyPanel requests={outOfPolicy} />
-      </div>
+      <SpendChart data={monthly} />
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <StatusVolumeChart data={statusVolume} />
