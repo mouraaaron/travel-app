@@ -102,8 +102,11 @@ export function OnsiteWeekDetail({ onsiteWeek }: { onsiteWeek: OnsiteWeek }) {
               <TableCell className="text-foreground">{outcome.employee_name}</TableCell>
               <TableCell>
                 {outcome.status === "created" ? (
-                  <Link href={`/admin/requests/${outcome.request_id}`} className="text-primary hover:underline">
-                    Solicitação criada
+                  <Link
+                    href={`/admin/requests/${outcome.request_id}`}
+                    className="text-emerald-700 hover:underline dark:text-emerald-300"
+                  >
+                    Solicitação aprovada
                   </Link>
                 ) : (
                   <span className="text-destructive">{outcome.error_message ?? "Falhou"}</span>
