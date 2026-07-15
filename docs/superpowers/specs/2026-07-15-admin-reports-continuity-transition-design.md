@@ -62,7 +62,7 @@ Quando `useReducedMotion()` (framer-motion) retorna `true`, **todas** as três e
 ### `src/components/admin/employee-ranking-table.tsx`
 
 - Envolver a tabela e o painel de relatório em um único `motion.div` com `LayoutGroup` (do framer-motion) para que o `layoutId` do avatar seja resolvido entre os dois — `LayoutGroup` isola esse `layoutId` de outras instâncias da tabela que possam existir na página (não há hoje, mas evita acoplamento futuro).
-- Na célula "Funcionário" de cada `TableRow`, envolver `Avatar` + nome num `motion.div layoutId={`employee-anchor-${row.employeeId}`}` (só quando aquela linha for a selecionada, para não computar layout de todas as linhas — ver nota de performance abaixo).
+- Na célula "Funcionário" de cada `TableRow`, envolver `Avatar` + nome num `motion.div layoutId={`employee-anchor-${row.employeeId}`}`, presente **continuamente** em toda linha (não só na selecionada — ver correção na nota de performance abaixo).
 - Quando `selectedEmployeeId` não é `null`:
   - Tabela: `motion.div` com `animate={{ opacity: 0, scale: 0.98 }}` (ao invés de deixar de renderizar) — mantém montada mas oculta.
   - `AnimatePresence` envolve o `EmployeeReportPanel`, que entra com `layoutId` compartilhado no cabeçalho.
@@ -99,7 +99,7 @@ Quando `useReducedMotion()` (framer-motion) retorna `true`, **todas** as três e
 - **Esc fecha o painel:** listener de `keydown` (via `useEffect` no `EmployeeReportPanel` ou hook compartilhado) chama `onBack` quando `selectedEmployeeId !== null`.
 - **Foco:** ao abrir, mover foco para o botão de voltar (`ref.current?.focus()` num `useEffect`); ao fechar, retornar foco para a `TableRow` selecionada (precisa de `ref` por linha, guardado num `Map` ou `ref` único atualizado no clique).
 - **`prefers-reduced-motion`:** ver seção "## Animação" acima para o comportamento exato (`useReducedMotion()` do framer-motion).
-- **Performance:** `layoutId` só é atribuído à linha correspondente a `selectedEmployeeId` (nunca a todas as linhas simultaneamente), evitando que o framer-motion precise rastrear layout de todas as linhas da tabela a cada render.
+- **Performance (correção):** a versão original desta seção assumia que `layoutId` deveria ser atribuído só à linha selecionada. Isso quebra o fechamento: se a linha perde o `layoutId` no mesmo instante em que o painel desmonta, não sobra nenhum elemento com aquele id para a âncora "pousar" de volta — a animação de retorno não tem alvo. A implementação correta mantém `layoutId` em **todas** as linhas continuamente (quando `prefers-reduced-motion` não está ativo); o custo é aceitável para o número de funcionários exibido nesta tabela (dezenas, não milhares), e é o mesmo padrão usado nos exemplos oficiais do framer-motion para grades que expandem para tela cheia.
 
 ## Testes
 
