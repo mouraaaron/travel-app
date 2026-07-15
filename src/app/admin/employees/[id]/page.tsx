@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmployeeActions } from "@/components/admin/employee-actions";
 import { EmployeeSummaryCards } from "@/components/admin/employee-summary-cards";
+import { EmployeeTravelProfileForm } from "@/components/admin/employee-travel-profile-form";
 import { NotFoundState } from "@/components/layout/not-found-state";
 import { getEmployeeStatusBadge, getRoleBadge, getSectorBadge } from "@/lib/badge-variants";
 import { outOfPolicyByEmployee, spendByEmployee } from "@/lib/admin-analytics";
@@ -20,7 +21,9 @@ export default async function AdminEmployeeDetailPage({ params }: { params: { id
 
   const { data: employeeRow } = await supabase
     .from("profiles")
-    .select("id, full_name, email, role, status, cost_center, created_at")
+    .select(
+      "id, full_name, email, role, status, cost_center, created_at, origin_airport_code, given_name, family_name, born_on, gender, title, phone_number"
+    )
     .eq("id", params.id)
     .single();
 
@@ -93,6 +96,8 @@ export default async function AdminEmployeeDetailPage({ params }: { params: { id
         costCenter={employee.cost_center}
         isSelf={currentProfile?.id === employee.id}
       />
+
+      <EmployeeTravelProfileForm employeeId={employee.id} profile={employee} />
     </div>
   );
 }

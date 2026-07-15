@@ -217,10 +217,19 @@ describe("requestVolumeBySector", () => {
 
 describe("headcountBySector", () => {
   it("counts employees per sector, in enum order, zero-filling sectors with no one in them", () => {
+    const travelProfileFields = {
+      origin_airport_code: null,
+      given_name: null,
+      family_name: null,
+      born_on: null,
+      gender: null,
+      title: null,
+      phone_number: null,
+    };
     const employees = [
-      { id: "1", full_name: "A", email: "a@x.com", role: "employee" as const, status: "active" as const, cost_center: "engineering" as const, created_at: "2026-01-01T00:00:00Z" },
-      { id: "2", full_name: "B", email: "b@x.com", role: "employee" as const, status: "active" as const, cost_center: "engineering" as const, created_at: "2026-01-01T00:00:00Z" },
-      { id: "3", full_name: "C", email: "c@x.com", role: "admin" as const, status: "active" as const, cost_center: "founders" as const, created_at: "2026-01-01T00:00:00Z" },
+      { id: "1", full_name: "A", email: "a@x.com", role: "employee" as const, status: "active" as const, cost_center: "engineering" as const, created_at: "2026-01-01T00:00:00Z", ...travelProfileFields },
+      { id: "2", full_name: "B", email: "b@x.com", role: "employee" as const, status: "active" as const, cost_center: "engineering" as const, created_at: "2026-01-01T00:00:00Z", ...travelProfileFields },
+      { id: "3", full_name: "C", email: "c@x.com", role: "admin" as const, status: "active" as const, cost_center: "founders" as const, created_at: "2026-01-01T00:00:00Z", ...travelProfileFields },
     ];
     expect(headcountBySector(employees)).toEqual([
       { sector: "product", count: 0 },

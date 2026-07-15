@@ -1,6 +1,7 @@
 import type { EmployeeRole, EmployeeStatus, Sector } from "./badge-variants";
+import type { TravelProfileFields } from "./onsite-weeks";
 
-export interface EmployeeRow {
+export interface EmployeeRow extends TravelProfileFields {
   id: string;
   full_name: string;
   email: string;
