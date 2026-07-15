@@ -250,6 +250,7 @@ export interface TravelRequest {
   id: string;
   organization_id: string;
   employee_id: string;
+  onsite_week_id: string | null;
   created_at: string;
   status: TravelRequestStatus;
   search_criteria: SearchCriteria;

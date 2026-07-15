@@ -5,6 +5,7 @@ export interface RequestRow {
   id: string;
   organization_id: string;
   employee_id: string;
+  onsite_week_id: string | null;
   status: TravelRequest["status"];
   total_amount: number;
   total_currency: string;
@@ -23,6 +24,7 @@ export function toTravelRequest(row: RequestRow): TravelRequest {
     id: row.id,
     organization_id: row.organization_id,
     employee_id: row.employee_id,
+    onsite_week_id: row.onsite_week_id,
     created_at: row.created_at,
     status: row.status,
     search_criteria: row.search_criteria,

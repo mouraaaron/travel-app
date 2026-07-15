@@ -7,6 +7,7 @@ function makeRequest(overrides: Partial<AdminQueueRequest> = {}): AdminQueueRequ
     id: "req_1",
     organization_id: "org_1",
     employee_id: "emp_1",
+    onsite_week_id: null,
     employeeName: "Carlos Medeiros",
     employeeSector: "engineering",
     created_at: "2026-07-06T09:14:00Z",
