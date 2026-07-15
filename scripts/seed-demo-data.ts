@@ -34,6 +34,45 @@ const ROUTES: Array<{ origin: string; destination: string; international: boolea
   { origin: "GRU", destination: "MIA", international: true },
 ];
 
+const TRIP_JUSTIFICATIONS: Record<TripPurpose, string[]> = {
+  client_meeting: [
+    "Reunião presencial com cliente para apresentação de proposta comercial.",
+    "Visita técnica ao cliente para acompanhar a implantação do projeto.",
+    "Negociação de contrato com cliente estratégico da conta.",
+    "Reunião de alinhamento trimestral com cliente-chave.",
+  ],
+  conference: [
+    "Participação em conferência do setor para networking e capacitação.",
+    "Palestra em evento do setor representando a empresa.",
+    "Participação em feira do setor para prospecção de parceiros.",
+    "Apresentação de case da empresa em congresso da área.",
+  ],
+  internal_meeting: [
+    "Reunião de planejamento estratégico com a liderança na matriz.",
+    "Alinhamento presencial com equipe de outra unidade.",
+    "Kickoff presencial de projeto interno com stakeholders.",
+    "Encontro trimestral de lideranças da empresa.",
+  ],
+  training: [
+    "Participação em treinamento técnico oferecido pelo fornecedor.",
+    "Capacitação presencial obrigatória para certificação da equipe.",
+    "Treinamento de liderança promovido pela empresa.",
+    "Workshop de atualização profissional na área de atuação.",
+  ],
+  other: [
+    "Viagem para representar a empresa em evento institucional.",
+    "Deslocamento para resolução de demanda operacional pontual.",
+    "Viagem de suporte a outra unidade da empresa.",
+  ],
+};
+
+const OUT_OF_POLICY_JUSTIFICATIONS: string[] = [
+  "Não havia voos dentro do teto de política disponíveis para as datas da viagem.",
+  "Reunião marcada em cima da hora exigiu compra de passagem com tarifa mais alta.",
+  "Único voo compatível com a agenda do cliente excedia o limite de custo da política.",
+  "Alta demanda no período, por evento no destino, elevou o preço acima do teto padrão.",
+];
+
 // Maioria confirmed/approved, com alguns pending_admin/rejected/cancelled — mistura realista.
 const STATUS_POOL: TravelRequestStatus[] = [
   "confirmed", "confirmed", "confirmed",
@@ -143,8 +182,8 @@ function buildRequest(employeeId: string, organizationId: string, sector: Sector
     corporate: {
       trip_purpose: purpose,
       cost_center: sector,
-      business_justification: faker.lorem.sentence(),
-      ...(compliant ? {} : { out_of_policy_justification: faker.lorem.sentence() }),
+      business_justification: pick(TRIP_JUSTIFICATIONS[purpose]),
+      ...(compliant ? {} : { out_of_policy_justification: pick(OUT_OF_POLICY_JUSTIFICATIONS) }),
     },
     policy_evaluation: {
       compliant,
