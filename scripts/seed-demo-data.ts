@@ -113,6 +113,7 @@ async function createEmployee(organizationId: string): Promise<{ id: string; ful
     organization_id: organizationId,
     role: "employee",
     full_name: fullName,
+    email,
     cost_center: sector,
   });
   if (profileError) {
