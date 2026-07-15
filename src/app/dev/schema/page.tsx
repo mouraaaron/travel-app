@@ -1,14 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import {
-  Background,
-  Controls,
-  MiniMap,
-  ReactFlow,
-  MarkerType,
-  type Edge,
-} from "@xyflow/react";
+import { Background, Controls, MiniMap, ReactFlow, type Edge } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 import { TableNode, type TableNodeType } from "@/components/dev/table-node";
@@ -17,12 +10,13 @@ import { schemaEdges, schemaTables } from "@/lib/dev/database-schema";
 const nodeTypes = { tableNode: TableNode };
 
 const positions: Record<string, { x: number; y: number }> = {
-  "auth.users": { x: 40, y: 40 },
-  organizations: { x: 620, y: 40 },
-  profiles: { x: 40, y: 320 },
-  requests: { x: 620, y: 340 },
-  policy_rules: { x: 1140, y: 340 },
-  exchange_rates: { x: 1140, y: 40 },
+  requests: { x: 0, y: 260 },
+  onsite_weeks: { x: 420, y: 180 },
+  exchange_rates: { x: 420, y: 620 },
+  policy_rules: { x: 820, y: 0 },
+  profiles: { x: 820, y: 460 },
+  organizations: { x: 1240, y: 220 },
+  "auth.users": { x: 1150, y: 600 },
 };
 
 export default function DatabaseSchemaPage() {
@@ -45,10 +39,15 @@ export default function DatabaseSchemaPage() {
         sourceHandle: edge.sourceColumn,
         target: edge.target,
         targetHandle: edge.targetColumn,
-        label: edge.label,
+        type: "smoothstep",
+        pathOptions: { borderRadius: 0 },
         animated: false,
-        style: edge.dashed ? { strokeDasharray: 5 } : undefined,
-        markerEnd: { type: MarkerType.ArrowClosed },
+        style: {
+          stroke: "hsl(var(--muted-foreground))",
+          strokeWidth: 1,
+          strokeDasharray: edge.dashed ? 5 : undefined,
+          opacity: 0.5,
+        },
       })),
     []
   );

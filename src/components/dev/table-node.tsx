@@ -1,64 +1,75 @@
 "use client";
 
+import { Diamond, KeyRound, MoreVertical, Table2 } from "lucide-react";
 import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
 
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { ColumnFlag, SchemaTable } from "@/lib/dev/database-schema";
+import type { SchemaColumn, SchemaTable } from "@/lib/dev/database-schema";
 
 export type TableNodeType = Node<{ table: SchemaTable }, "tableNode">;
 
-const flagBadge: Record<ColumnFlag, { label: string; variant: React.ComponentProps<typeof Badge>["variant"] }> = {
-  pk: { label: "PK", variant: "default" },
-  fk: { label: "FK", variant: "info" },
-  unique: { label: "UNIQUE", variant: "magic" },
-};
+function ColumnBullet({ column }: { column: SchemaColumn }) {
+  if (column.flags?.includes("pk")) {
+    return <KeyRound className="h-3 w-3 shrink-0 text-amber-400" strokeWidth={2.5} />;
+  }
+  return (
+    <Diamond
+      className={cn("h-2.5 w-2.5 shrink-0", column.nullable ? "text-muted-foreground/50" : "text-violet-400")}
+      fill={column.nullable ? "none" : "currentColor"}
+      strokeWidth={2}
+    />
+  );
+}
 
 export function TableNode({ data }: NodeProps<TableNodeType>) {
   const { table } = data;
 
+  if (table.external) {
+    const idColumn = table.columns.find((column) => column.flags?.includes("pk")) ?? table.columns[0];
+    return (
+      <div className="flex w-fit items-center gap-1.5 rounded-sm border border-border/60 bg-card/60 px-2.5 py-1.5 text-[11px] text-muted-foreground shadow-sm">
+        <Table2 className="h-3 w-3 shrink-0" />
+        <span className="font-mono">
+          {table.name}.{idColumn.name}
+        </span>
+        <Handle
+          type="target"
+          position={Position.Left}
+          id={idColumn.name}
+          className="!h-1.5 !w-1.5 !rounded-none !border-none !bg-muted-foreground/60"
+        />
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={cn(
-        "w-[300px] overflow-hidden rounded-sm border bg-card text-card-foreground shadow-sm",
-        table.external && "border-dashed opacity-90"
-      )}
-    >
-      <div className="flex items-center justify-between gap-2 border-b bg-muted/50 px-3 py-2">
-        <span className="font-mono text-sm font-semibold">{table.name}</span>
-        <div className="flex gap-1">
-          {table.rls && (
-            <Badge variant="success" className="px-1.5 py-0 text-[10px]">
-              RLS
-            </Badge>
-          )}
-          {table.external && (
-            <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
-              external
-            </Badge>
-          )}
+    <div className="w-[230px] overflow-hidden rounded-md border border-border bg-card text-card-foreground shadow-md">
+      <div className="flex items-center justify-between gap-2 border-b border-border bg-muted/40 px-2.5 py-2">
+        <div className="flex items-center gap-1.5">
+          <Table2 className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-[12px] font-semibold">{table.name}</span>
         </div>
+        <MoreVertical className="h-3.5 w-3.5 text-muted-foreground/60" />
       </div>
 
-      {table.note && (
-        <p className="border-b bg-muted/20 px-3 py-1.5 text-[11px] leading-snug text-muted-foreground">
-          {table.note}
-        </p>
-      )}
-
-      <div className="divide-y">
+      <div className="divide-y divide-border/60">
         {table.columns.map((column) => {
           const isPk = column.flags?.includes("pk");
           const isFk = column.flags?.includes("fk");
+          const title = [column.check, column.note].filter(Boolean).join(" — ") || undefined;
 
           return (
-            <div key={column.name} className="relative flex flex-col gap-0.5 px-3 py-1.5">
+            <div
+              key={column.name}
+              title={title}
+              className="relative flex items-center justify-between gap-2 px-2.5 py-1.5"
+            >
               {isPk && (
                 <Handle
                   type="target"
                   position={Position.Left}
                   id={column.name}
-                  className="!left-0 !h-2 !w-2 !bg-primary"
+                  className="!left-0 !h-1.5 !w-1.5 !rounded-none !border-none !bg-muted-foreground/60"
                 />
               )}
               {isFk && (
@@ -66,35 +77,22 @@ export function TableNode({ data }: NodeProps<TableNodeType>) {
                   type="source"
                   position={Position.Right}
                   id={column.name}
-                  className="!right-0 !h-2 !w-2 !bg-sky-500"
+                  className="!right-0 !h-1.5 !w-1.5 !rounded-none !border-none !bg-muted-foreground/60"
                 />
               )}
 
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-xs">
+              <span className="flex min-w-0 items-center gap-1.5">
+                <ColumnBullet column={column} />
+                <span
+                  className={cn(
+                    "truncate font-mono text-[11px]",
+                    isPk ? "font-semibold text-foreground" : "text-foreground/90"
+                  )}
+                >
                   {column.name}
-                  <span className="ml-1.5 text-muted-foreground">{column.type}</span>
                 </span>
-                <div className="flex shrink-0 gap-1">
-                  {column.flags?.map((flag) => {
-                    const badge = flagBadge[flag];
-                    return (
-                      <Badge key={flag} variant={badge.variant} className="px-1.5 py-0 text-[10px]">
-                        {badge.label}
-                      </Badge>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {column.check && (
-                <span className="text-[10px] leading-snug text-amber-700 dark:text-amber-400">
-                  check: {column.check}
-                </span>
-              )}
-              {column.note && (
-                <span className="text-[10px] leading-snug text-muted-foreground">{column.note}</span>
-              )}
+              </span>
+              <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{column.type}</span>
             </div>
           );
         })}

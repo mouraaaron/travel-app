@@ -1,5 +1,5 @@
 // Descrição estática do schema do banco (transcrita das migrations em
-// supabase/migrations/0001..0005) para alimentar o diagrama ReactFlow em
+// supabase/migrations/0001..0008) para alimentar o diagrama ReactFlow em
 // src/app/dev/schema. Não há introspecção automática: se o schema mudar,
 // este arquivo precisa ser atualizado à mão.
 
@@ -73,6 +73,13 @@ export const schemaTables: SchemaTable[] = [
         check: "cost_center in ('product', 'marketing', 'engineering', 'founders')",
         note: "setor do funcionário (nome legado da coluna)",
       },
+      { name: "origin_airport_code", type: "text", nullable: true, note: "perfil de viagem (0008)" },
+      { name: "given_name", type: "text", nullable: true, note: "perfil de viagem (0008)" },
+      { name: "family_name", type: "text", nullable: true, note: "perfil de viagem (0008)" },
+      { name: "born_on", type: "date", nullable: true, note: "perfil de viagem (0008)" },
+      { name: "gender", type: "text", nullable: true, check: "gender in ('m', 'f')" },
+      { name: "title", type: "text", nullable: true, check: "title in ('mr', 'mrs', 'ms', 'miss', 'dr')" },
+      { name: "phone_number", type: "text", nullable: true, note: "perfil de viagem (0008)" },
     ],
   },
   {
@@ -92,11 +99,6 @@ export const schemaTables: SchemaTable[] = [
       },
       { name: "total_amount", type: "numeric" },
       { name: "total_currency", type: "text" },
-      {
-        name: "exchange_rate_to_brl",
-        type: "numeric",
-        note: "nullable; registros antigos (seed sintético, ou antes desta mudança) ficam null",
-      },
       { name: "created_at", type: "timestamptz", note: "default now()" },
       { name: "search_criteria", type: "jsonb" },
       { name: "selected_offer_snapshot", type: "jsonb" },
@@ -104,6 +106,19 @@ export const schemaTables: SchemaTable[] = [
       { name: "corporate", type: "jsonb" },
       { name: "policy_evaluation", type: "jsonb" },
       { name: "events", type: "jsonb", note: "default '[]'" },
+      {
+        name: "exchange_rate_to_brl",
+        type: "numeric",
+        nullable: true,
+        note: "registros antigos (seed sintético, ou antes desta mudança) ficam null",
+      },
+      {
+        name: "onsite_week_id",
+        type: "uuid",
+        flags: ["fk"],
+        nullable: true,
+        note: "→ onsite_weeks.id; unique parcial com employee_id quando não nulo (0008)",
+      },
     ],
   },
   {
@@ -137,6 +152,34 @@ export const schemaTables: SchemaTable[] = [
       { name: "currency", type: "text", flags: ["pk"], note: "ex.: 'USD'" },
       { name: "rate_to_brl", type: "numeric" },
       { name: "fetched_at", type: "timestamptz", note: "default now()" },
+    ],
+  },
+  {
+    id: "onsite_weeks",
+    name: "onsite_weeks",
+    rls: true,
+    note: "Um lote por (setor, ida, volta) na organização — unique constraint é a trava de idempotência (0008).",
+    columns: [
+      { name: "id", type: "uuid", flags: ["pk"], note: "default gen_random_uuid()" },
+      { name: "organization_id", type: "uuid", flags: ["fk"] },
+      {
+        name: "sector",
+        type: "text",
+        check: "sector in ('product', 'marketing', 'engineering', 'founders')",
+        note: "unique com organization_id, week_start_date, week_end_date",
+      },
+      { name: "week_start_date", type: "date" },
+      { name: "week_end_date", type: "date" },
+      {
+        name: "status",
+        type: "text",
+        check: "status in ('completed', 'partial', 'cancelled')",
+        note: "default 'completed'",
+      },
+      { name: "employee_outcomes", type: "jsonb", note: "default '[]'; resultado por funcionário do lote" },
+      { name: "created_by", type: "uuid", flags: ["fk"], note: "→ profiles.id" },
+      { name: "created_at", type: "timestamptz", note: "default now()" },
+      { name: "cancelled_at", type: "timestamptz", nullable: true },
     ],
   },
 ];
@@ -182,5 +225,29 @@ export const schemaEdges: SchemaEdge[] = [
     targetColumn: "id",
     label: "extends",
     dashed: true,
+  },
+  {
+    id: "onsite_weeks-organizations",
+    source: "onsite_weeks",
+    sourceColumn: "organization_id",
+    target: "organizations",
+    targetColumn: "id",
+    label: "organization_id",
+  },
+  {
+    id: "onsite_weeks-profiles",
+    source: "onsite_weeks",
+    sourceColumn: "created_by",
+    target: "profiles",
+    targetColumn: "id",
+    label: "created_by",
+  },
+  {
+    id: "requests-onsite_weeks",
+    source: "requests",
+    sourceColumn: "onsite_week_id",
+    target: "onsite_weeks",
+    targetColumn: "id",
+    label: "onsite_week_id",
   },
 ];
