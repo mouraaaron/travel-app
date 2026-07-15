@@ -190,8 +190,8 @@ export function RequestDetailView({ request }: { request: TravelRequest }) {
             <Button variant="secondary" onClick={() => setCancelOpen(false)}>
               Manter
             </Button>
-            <Button variant="destructive" disabled={cancelling} onClick={handleCancelConfirm}>
-              {cancelling ? "Cancelando..." : "Cancelar solicitação"}
+            <Button variant="destructive" loading={cancelling} onClick={handleCancelConfirm}>
+              Cancelar solicitação
             </Button>
           </DialogFooter>
         </DialogContent>
