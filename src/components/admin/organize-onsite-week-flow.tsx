@@ -16,6 +16,11 @@ import type { OnsiteWeekPreviewEmployee } from "@/lib/onsite-weeks";
 
 type Step = "form" | "review";
 
+function formatDateBR(iso: string): string {
+  const [year, month, day] = iso.split("-");
+  return `${day}/${month}/${year.slice(2)}`;
+}
+
 export function OrganizeOnsiteWeekFlow() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("form");
@@ -149,7 +154,7 @@ export function OrganizeOnsiteWeekFlow() {
         Revisar funcionários — {SECTOR_LABELS[sector]}
       </h1>
       <p className="text-sm text-muted-foreground">
-        {weekStartDate} a {weekEndDate}. Desmarque quem não deve viajar.
+        {formatDateBR(weekStartDate)} a {formatDateBR(weekEndDate)}. Desmarque quem não deve viajar.
       </p>
 
       <Table>
