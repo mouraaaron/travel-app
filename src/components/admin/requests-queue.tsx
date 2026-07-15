@@ -83,6 +83,7 @@ export function RequestsQueue({ requests }: { requests: AdminQueueRequest[] }) {
             const outOfPolicy = !request.policy_evaluation.compliant;
             const policyBadge = getDuffelPolicyBadge(request.policy_evaluation);
             const flagBadges = getDuffelFlagBadges(request.policy_evaluation);
+            const isOnsiteWeek = request.onsite_week_id !== null;
 
             return (
               <div
@@ -100,6 +101,7 @@ export function RequestsQueue({ requests }: { requests: AdminQueueRequest[] }) {
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm font-semibold text-foreground">{request.employeeName}</span>
                       <RequestStatusBadge status={request.status} />
+                      {isOnsiteWeek ? <Badge variant="info">Semana Presencial</Badge> : null}
                     </div>
                     <p className="text-[13px] text-muted-foreground">
                       {origin} → {destination} · {request.passengers.length} passageiro
