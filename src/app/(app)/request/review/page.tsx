@@ -290,10 +290,11 @@ export default function ReviewPage() {
             <Button
               type="submit"
               size="lg"
-              disabled={submitting || !policyLoaded}
+              loading={submitting}
+              disabled={!policyLoaded}
               className="bg-brand-gradient hover:bg-brand-gradient-hover"
             >
-              {submitting ? "Enviando..." : !policyLoaded ? "Carregando política..." : "Enviar solicitação"}
+              Enviar solicitação
             </Button>
           </div>
         </form>
