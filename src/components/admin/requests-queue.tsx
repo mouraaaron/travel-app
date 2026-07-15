@@ -131,10 +131,10 @@ export function RequestsQueue({ requests }: { requests: AdminQueueRequest[] }) {
                       <Button
                         variant="success"
                         size="sm"
-                        disabled={approvingId === request.id}
+                        loading={approvingId === request.id}
                         onClick={() => handleQuickApprove(request.id)}
                       >
-                        {approvingId === request.id ? "Aprovando..." : "Aprovar"}
+                        Aprovar
                       </Button>
                     ) : null}
                     <Button variant="secondary" size="sm" asChild>
