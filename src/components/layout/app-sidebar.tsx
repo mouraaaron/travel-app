@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  CalendarRange,
   ClipboardCheck,
   ClipboardList,
   FileText,
@@ -29,6 +30,7 @@ const PERSONAL_NAV_ITEMS: NavItem[] = [
 const ADMIN_NAV_ITEMS: NavItem[] = [
   { href: "/admin", label: "Painel", icon: LayoutDashboard },
   { href: "/admin/requests", label: "Solicitações", icon: ClipboardCheck },
+  { href: "/admin/onsite-weeks", label: "Semanas Presenciais", icon: CalendarRange },
   { href: "/admin/employees", label: "Funcionários", icon: Users },
   { href: "/admin/reports", label: "Relatórios", icon: FileText },
   { href: "/admin/settings", label: "Configurações", icon: Settings },
