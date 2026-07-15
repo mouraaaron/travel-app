@@ -84,6 +84,10 @@ export function RequestsQueue({ requests }: { requests: AdminQueueRequest[] }) {
             const policyBadge = getDuffelPolicyBadge(request.policy_evaluation);
             const flagBadges = getDuffelFlagBadges(request.policy_evaluation);
             const isOnsiteWeek = request.onsite_week_id !== null;
+            const canQuickApprove =
+              request.status === "pending_admin" &&
+              !outOfPolicy &&
+              !request.policy_evaluation.flags.cost_above_threshold;
 
             return (
               <div
@@ -123,7 +127,7 @@ export function RequestsQueue({ requests }: { requests: AdminQueueRequest[] }) {
                 <div className="flex flex-col items-end gap-2">
                   <span className="text-xs text-muted-foreground">{formatDate(request.created_at)}</span>
                   <div className="flex gap-2">
-                    {request.status === "pending_admin" ? (
+                    {canQuickApprove ? (
                       <Button
                         variant="success"
                         size="sm"
