@@ -7,7 +7,7 @@
 **Dentro do escopo:**
 - `src/components/admin/employee-detail.tsx`: passa a renderizar `Tabs`/`TabsList`/`TabsTrigger` (mesmo componente já usado em `src/components/admin/requests-queue.tsx`) com três abas — **Todas** (nova, selecionada por padrão), **Gasto mensal**, **Desvios de política** (as duas últimas com o conteúdo exatamente como já existe hoje, só realocado para dentro de uma aba).
 - Novo componente `src/components/admin/employee-requests-table.tsx`: recebe `requests: AdminQueueRequest[]` (a mesma lista `employeeRequests` já filtrada por `employee_id` que `EmployeeDetail` já calcula hoje) e renderiza uma `Table` com colunas Rota / Valor / Status / Data, ordenada por `created_at` desc, uma linha por solicitação, sem filtro de status.
-- Cada linha da nova tabela é um link (`next/link`) para `/admin/requests/[id]` (rota já existente).
+- Cada linha da nova tabela navega para `/admin/requests/[id]` (rota já existente) via `router.push` no `onClick` da `TableRow`, mesmo padrão já usado em `src/components/admin/employees-table.tsx` — não via `<Link>` envolvendo a linha.
 
 **Fora de escopo:**
 - Qualquer mudança em `src/app/admin/reports/page.tsx` — a query que já busca todas as requests de todos os funcionários não muda.
@@ -31,7 +31,7 @@
 - Ordena `requests` por `created_at` desc (mesmo critério já usado para "Desvios de política" em `employee-detail.tsx`).
 - Renderiza `Card` > `Table` com `TableHeader` (Rota, Valor, Status, Data) e uma `TableRow` por solicitação, reaproveitando sem alteração: `RequestStatusBadge` (`src/components/trip/request-status-badge.tsx`), `getRouteLabel`, `formatCurrency`, `formatDate` (`src/lib/offer-format.ts`).
 - Lista vazia: `EmptyState` (mesmo componente já usado em "Desvios de política" e na página de Relatórios).
-- Cada `TableRow` envolvida num `Link` (`next/link`) para `/admin/requests/${request.id}`, com `cursor-pointer` e hover, mesmo padrão visual de linha clicável já usado em `employee-ranking-table.tsx`.
+- Cada `TableRow` recebe `cursor-pointer` e `onClick={() => router.push(\`/admin/requests/${request.id}\`)}`, mesmo padrão já usado em `src/components/admin/employees-table.tsx:122-126` — não uma `<Link>` envolvendo a linha.
 
 ### `src/components/admin/employee-detail.tsx` (modificado)
 
