@@ -164,10 +164,10 @@ export function AdminRequestDetailView({ request }: { request: AdminQueueRequest
                 <div className="flex flex-col gap-2">
                   <Button
                     className="bg-brand-gradient hover:bg-brand-gradient-hover"
-                    disabled={approving}
+                    loading={approving}
                     onClick={handleApprove}
                   >
-                    {approving ? "Aprovando..." : "Aprovar"}
+                    Aprovar
                   </Button>
                   <Button variant="secondary" className="text-destructive" onClick={() => setRejectOpen(true)}>
                     Rejeitar
@@ -214,10 +214,11 @@ export function AdminRequestDetailView({ request }: { request: AdminQueueRequest
             </Button>
             <Button
               variant="destructive"
-              disabled={rejecting || rejectReason.trim().length === 0}
+              loading={rejecting}
+              disabled={rejectReason.trim().length === 0}
               onClick={handleRejectConfirm}
             >
-              {rejecting ? "Rejeitando..." : "Confirmar rejeição"}
+              Confirmar rejeição
             </Button>
           </DialogFooter>
         </DialogContent>
