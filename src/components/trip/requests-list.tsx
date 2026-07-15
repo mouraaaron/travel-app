@@ -122,10 +122,10 @@ export function RequestsList({ requests }: { requests: TravelRequest[] }) {
                       type="button"
                       variant="outline"
                       size="sm"
-                      disabled={cancellingId === request.id}
+                      loading={cancellingId === request.id}
                       onClick={() => handleCancel(request.id)}
                     >
-                      {cancellingId === request.id ? "Cancelando..." : "Cancelar"}
+                      Cancelar
                     </Button>
                   ) : null}
                   <Button type="button" variant="secondary" size="sm" asChild>
