@@ -106,6 +106,41 @@ export function SectorVolumeChart({ data }: { data: { sector: Sector; count: num
   );
 }
 
+const AVG_ONSITE_WEEK_COST_CONFIG: ChartConfig = {
+  average: { label: "Custo médio", color: "hsl(var(--chart-4))" },
+};
+
+export function AvgOnsiteWeekCostChart({ data }: { data: { sector: Sector; average: number }[] }) {
+  const chartData = data.map((entry) => ({ label: SECTOR_LABELS[entry.sector], average: entry.average }));
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Custo médio de viagem de semana presencial por setor</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={AVG_ONSITE_WEEK_COST_CONFIG} className="h-64 w-full">
+          <BarChart data={chartData} layout="vertical" margin={{ left: 16 }}>
+            <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+            <XAxis
+              type="number"
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => formatCurrency(Number(value), "BRL")}
+            />
+            <YAxis dataKey="label" type="category" tickLine={false} axisLine={false} width={100} />
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent formatter={(value) => formatCurrency(Number(value), "BRL")} />}
+            />
+            <Bar dataKey="average" fill="var(--color-average)" radius={4} />
+          </BarChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  );
+}
+
 const SECTOR_HEADCOUNT_CONFIG: ChartConfig = {
   count: { label: "Funcionários", color: "hsl(var(--chart-4))" },
 };
