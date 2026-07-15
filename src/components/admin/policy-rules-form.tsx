@@ -86,8 +86,8 @@ function SectorPolicyCard({ rule }: { rule: PolicyRuleRow }) {
             />
           </div>
         </div>
-        <Button size="sm" className="w-fit" disabled={saving} onClick={handleSave}>
-          {saving ? "Salvando..." : "Salvar"}
+        <Button size="sm" className="w-fit" loading={saving} onClick={handleSave}>
+          Salvar
         </Button>
       </CardContent>
     </Card>
