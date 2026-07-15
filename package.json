@@ -10,6 +10,7 @@
     "test": "vitest run",
     "seed": "tsx --env-file=.env.local scripts/seed-demo-data.ts",
     "seed:sectors": "tsx --env-file=.env.local scripts/seed-sector-demo-employees.ts",
+    "seed:onsite-profiles": "tsx --env-file=.env.local scripts/seed-onsite-week-travel-profiles.ts",
     "seed:reset": "tsx --env-file=.env.local scripts/reset-demo-data.ts",
     "backfill-usd-requests": "tsx --env-file=.env.local scripts/backfill-usd-requests-to-brl.ts"
   },
