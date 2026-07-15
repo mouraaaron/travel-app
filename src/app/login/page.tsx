@@ -99,10 +99,10 @@ export default function LoginPage() {
                 />
                 <Button
                   type="submit"
-                  disabled={submitting}
+                  loading={submitting}
                   className="bg-brand-gradient hover:bg-brand-gradient-hover"
                 >
-                  {submitting ? "Entrando..." : "Entrar"}
+                  Entrar
                 </Button>
               </form>
             </Form>
