@@ -128,3 +128,15 @@ const SECTOR_BADGES: Record<Sector, BadgeSpec> = {
 export function getSectorBadge(sector: Sector): BadgeSpec {
   return SECTOR_BADGES[sector];
 }
+
+export type OnsiteWeekStatus = "completed" | "partial" | "cancelled";
+
+const ONSITE_WEEK_STATUS_BADGES: Record<OnsiteWeekStatus, BadgeSpec> = {
+  completed: { label: "Concluída", variant: "success" },
+  partial: { label: "Parcial", variant: "warning" },
+  cancelled: { label: "Cancelada", variant: "secondary" },
+};
+
+export function getOnsiteWeekStatusBadge(status: OnsiteWeekStatus): BadgeSpec {
+  return ONSITE_WEEK_STATUS_BADGES[status];
+}

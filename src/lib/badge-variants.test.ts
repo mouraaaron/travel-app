@@ -4,6 +4,7 @@ import {
   getDuffelPolicyBadge,
   getEmployeeStatusBadge,
   getFlagBadges,
+  getOnsiteWeekStatusBadge,
   getPolicyBadge,
   getRoleBadge,
   getStatusBadge,
@@ -152,5 +153,15 @@ describe("getEmployeeStatusBadge", () => {
     ["inactive", "Inativo", "destructive"],
   ] as const)("maps %s to { %s, %s }", (status, label, variant) => {
     expect(getEmployeeStatusBadge(status)).toEqual({ label, variant });
+  });
+});
+
+describe("getOnsiteWeekStatusBadge", () => {
+  it.each([
+    ["completed", "Concluída", "success"],
+    ["partial", "Parcial", "warning"],
+    ["cancelled", "Cancelada", "secondary"],
+  ] as const)("maps %s to { %s, %s }", (status, label, variant) => {
+    expect(getOnsiteWeekStatusBadge(status)).toEqual({ label, variant });
   });
 });
