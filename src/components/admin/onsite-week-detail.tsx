@@ -173,8 +173,8 @@ export function OnsiteWeekDetail({
       {onsiteWeek.status !== "cancelled" ? (
         <div className="flex items-center gap-2">
           {failed.length > 0 ? (
-            <Button variant="secondary" disabled={retrying} onClick={handleRetry}>
-              {retrying ? "Tentando novamente..." : `Tentar novamente (${failed.length})`}
+            <Button variant="secondary" loading={retrying} onClick={handleRetry}>
+              {`Tentar novamente (${failed.length})`}
             </Button>
           ) : null}
           <Button variant="destructive" onClick={() => setCancelOpen(true)}>
@@ -195,8 +195,8 @@ export function OnsiteWeekDetail({
             <Button variant="secondary" onClick={() => setCancelOpen(false)}>
               Voltar
             </Button>
-            <Button variant="destructive" disabled={cancelling} onClick={handleCancelConfirm}>
-              {cancelling ? "Cancelando..." : "Cancelar semana presencial"}
+            <Button variant="destructive" loading={cancelling} onClick={handleCancelConfirm}>
+              Cancelar semana presencial
             </Button>
           </DialogFooter>
         </DialogContent>
