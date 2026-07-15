@@ -37,21 +37,65 @@ const buttonVariants = cva(
   }
 )
 
+export type ButtonVariant = NonNullable<VariantProps<typeof buttonVariants>["variant"]>
+
+/**
+ * Which sweep color reads correctly over each variant's background:
+ * light band for colored/dark fills, dark band for light/transparent ones.
+ */
+export const SWEEP_TONE: Record<ButtonVariant, "light" | "dark"> = {
+  default: "light",
+  destructive: "light",
+  secondary: "light",
+  success: "light",
+  outline: "dark",
+  ghost: "dark",
+  link: "dark",
+}
+
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
+  loading?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  (
+    { className, variant, size, asChild = false, loading = false, disabled, children, ...props },
+    ref
+  ) => {
     const Comp = asChild ? Slot : "button"
+    // Slot renders its single child as-is, so the sweep (an extra sibling)
+    // can only be injected for real <button> elements.
+    const showSweep = loading && !asChild
+    const tone = SWEEP_TONE[variant ?? "default"]
+
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(
+          buttonVariants({ variant, size, className }),
+          showSweep && "relative overflow-hidden"
+        )}
         ref={ref}
+        disabled={disabled || loading}
         {...props}
-      />
+      >
+        {showSweep ? (
+          <>
+            <span
+              aria-hidden="true"
+              className={cn(
+                "t-button-sweep",
+                tone === "light" ? "t-button-sweep--light" : "t-button-sweep--dark"
+              )}
+            />
+            <span className="relative z-[2]">{children}</span>
+          </>
+        ) : (
+          children
+        )}
+      </Comp>
     )
   }
 )
