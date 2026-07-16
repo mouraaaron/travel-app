@@ -21,6 +21,8 @@ import {
   TripPurposeChart,
 } from "@/components/admin/spend-breakdown-charts";
 import { EmptyState } from "@/components/ui/empty-state";
+import { inCourseFlights } from "@/lib/in-course-flights";
+import { FlightPathMap } from "@/components/admin/flight-path-map";
 
 export default async function AdminDashboardPage() {
   const supabase = createSupabaseServerClient();
@@ -49,6 +51,7 @@ export default async function AdminDashboardPage() {
   const sectorVolume = requestVolumeBySector(requests);
   const tripPurpose = tripPurposeBreakdown(requests);
   const avgOnsiteWeekCost = avgOnsiteWeekCostBySector(requests);
+  const flights = inCourseFlights(requests);
 
   return (
     <div className="flex flex-col gap-6">
@@ -74,6 +77,8 @@ export default async function AdminDashboardPage() {
         <SectorVolumeChart data={sectorVolume} />
         <AvgOnsiteWeekCostChart data={avgOnsiteWeekCost} />
       </div>
+
+      <FlightPathMap flights={flights} />
     </div>
   );
 }
