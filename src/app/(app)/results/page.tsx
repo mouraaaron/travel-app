@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { OfferCard } from "@/components/trip/offer-card";
 import { formatDate, getRouteLabel } from "@/lib/offer-format";
 import { evaluateDuffelOffer } from "@/lib/policy";
@@ -56,14 +57,26 @@ function FiltersPanel({
     <div className="flex flex-col gap-6">
       <div>
         <p className="mb-2 text-sm font-medium text-foreground">Ordenar por</p>
-        <div className="flex flex-col gap-1.5 text-sm">
-          {(["price", "duration", "departure"] as const).map((key) => (
-            <label key={key} className="flex items-center gap-2">
-              <input type="radio" name="sort" checked={sortKey === key} onChange={() => onSortKeyChange(key)} />
-              {key === "price" ? "Preço" : key === "duration" ? "Duração" : "Horário de partida"}
-            </label>
-          ))}
-        </div>
+        <ToggleGroup
+          type="single"
+          pill
+          orientation="vertical"
+          value={sortKey}
+          onValueChange={(next) => {
+            if (!next) return;
+            onSortKeyChange(next as SortKey);
+          }}
+        >
+          <ToggleGroupItem value="price" className="justify-start">
+            Preço
+          </ToggleGroupItem>
+          <ToggleGroupItem value="duration" className="justify-start">
+            Duração
+          </ToggleGroupItem>
+          <ToggleGroupItem value="departure" className="justify-start">
+            Horário de partida
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
       <div>
         <p className="mb-2 text-sm font-medium text-foreground">Companhias</p>
