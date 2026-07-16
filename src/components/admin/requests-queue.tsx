@@ -52,7 +52,7 @@ export function RequestsQueue({ requests }: { requests: AdminQueueRequest[] }) {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Tabs value={tab} onValueChange={(value) => setTab(value as AdminQueueTab)}>
-          <TabsList indicator={false}>
+          <TabsList indicator="pill">
             <TabsTrigger value="pending">Pendentes</TabsTrigger>
             <TabsTrigger value="all">Todas</TabsTrigger>
           </TabsList>

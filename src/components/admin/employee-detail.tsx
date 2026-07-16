@@ -26,7 +26,7 @@ export function EmployeeDetail({ employeeId, employeeName, requests }: EmployeeD
 
   return (
     <Tabs defaultValue="all">
-      <TabsList indicator={false}>
+      <TabsList indicator="pill">
         <TabsTrigger value="all">Todas</TabsTrigger>
         <TabsTrigger value="spend">Gasto mensal</TabsTrigger>
         <TabsTrigger value="violations">Desvios de política</TabsTrigger>
