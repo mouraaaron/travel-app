@@ -1,5 +1,6 @@
 "use client";
 
+import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useFieldArray, useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -77,6 +78,7 @@ function Stepper({
 export function SearchCriteriaForm() {
   const router = useRouter();
   const { setCriteria } = useTripFlow();
+  const [isPending, startTransition] = useTransition();
   const form = useForm<TripSearchFormValues>({
     // zodResolver's generics resolve the pre-coercion input type of the
     // `z.coerce.number()` fields (adults/children/infants) as `unknown`, which
@@ -95,8 +97,10 @@ export function SearchCriteriaForm() {
   const departAfterReturnEnabled = form.watch("departAfterReturnEnabled");
 
   function onSubmit(values: TripSearchFormValues) {
-    setCriteria(tripSearchToCriteria(values));
-    router.push("/results");
+    startTransition(() => {
+      setCriteria(tripSearchToCriteria(values));
+      router.push("/results");
+    });
   }
 
   return (
@@ -351,7 +355,12 @@ export function SearchCriteriaForm() {
               </details>
 
               <div className="flex justify-end">
-                <Button type="submit" size="lg" className="bg-brand-gradient hover:bg-brand-gradient-hover">
+                <Button
+                  type="submit"
+                  size="lg"
+                  loading={isPending}
+                  className="bg-brand-gradient hover:bg-brand-gradient-hover"
+                >
                   Buscar ofertas
                 </Button>
               </div>
