@@ -1,0 +1,120 @@
+"use client";
+
+import { useId, useMemo } from "react";
+import DottedMap from "dotted-map";
+import { motion, useReducedMotion } from "framer-motion";
+import { Plane } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { curvedPath, projectPoint } from "@/lib/flight-map-geometry";
+
+export interface InCourseFlight {
+  id: string;
+  employeeName: string;
+  origin: { code: string; label: string; lat: number; lng: number };
+  destination: { code: string; label: string; lat: number; lng: number };
+  departureAt: string;
+  arrivalAt: string;
+}
+
+const LINE_COLOR = "#0ea5e9";
+
+function generateDottedMapSvg(): string {
+  const map = new DottedMap({ height: 100, grid: "diagonal" });
+  return map.getSVG({
+    radius: 0.22,
+    color: "#00000040",
+    shape: "circle",
+    backgroundColor: "white",
+  });
+}
+
+export function FlightPathMap({ flights }: { flights: InCourseFlight[] }) {
+  const shouldReduceMotion = useReducedMotion();
+  const gradientId = useId();
+  const svgMap = useMemo(generateDottedMapSvg, []);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Viagens em curso</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="relative aspect-[2/1] w-full overflow-hidden rounded-md bg-white">
+          <img
+            src={`data:image/svg+xml;utf8,${encodeURIComponent(svgMap)}`}
+            alt=""
+            className="pointer-events-none absolute inset-0 h-full w-full select-none"
+            draggable={false}
+          />
+          <svg viewBox="0 0 800 400" className="absolute inset-0 h-full w-full">
+            <defs>
+              <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="white" stopOpacity="0" />
+                <stop offset="5%" stopColor={LINE_COLOR} stopOpacity="1" />
+                <stop offset="95%" stopColor={LINE_COLOR} stopOpacity="1" />
+                <stop offset="100%" stopColor="white" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {flights.map((flight, index) => {
+              const start = projectPoint(flight.origin.lat, flight.origin.lng);
+              const end = projectPoint(flight.destination.lat, flight.destination.lng);
+              const path = curvedPath(start, end);
+
+              return (
+                <g key={flight.id}>
+                  <motion.path
+                    d={path}
+                    fill="none"
+                    stroke={`url(#${gradientId})`}
+                    strokeWidth={1}
+                    initial={shouldReduceMotion ? false : { pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 1, delay: 0.3 * index, ease: "easeOut" }}
+                  />
+                  {[start, end].map((point, endpointIndex) => (
+                    <g key={endpointIndex}>
+                      <circle cx={point.x} cy={point.y} r={2} fill={LINE_COLOR} />
+                      <circle cx={point.x} cy={point.y} r={2} fill={LINE_COLOR} opacity={0.5}>
+                        {!shouldReduceMotion && (
+                          <>
+                            <animate
+                              attributeName="r"
+                              from="2"
+                              to="8"
+                              dur="1.5s"
+                              begin="0s"
+                              repeatCount="indefinite"
+                            />
+                            <animate
+                              attributeName="opacity"
+                              from="0.5"
+                              to="0"
+                              dur="1.5s"
+                              begin="0s"
+                              repeatCount="indefinite"
+                            />
+                          </>
+                        )}
+                      </circle>
+                    </g>
+                  ))}
+                </g>
+              );
+            })}
+          </svg>
+          {flights.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center p-4">
+              <EmptyState
+                title="Nenhuma viagem em curso no momento"
+                icon={Plane}
+                size="small"
+                className="border-none bg-white/85"
+              />
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
