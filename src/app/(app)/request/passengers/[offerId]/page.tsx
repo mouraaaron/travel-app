@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -77,6 +77,8 @@ export default function PassengersPage() {
   const router = useRouter();
   const { criteria, offers, setPassengers } = useTripFlow();
   const offer = offers.find((o) => o.id === offerId);
+  const [isBackPending, startBackTransition] = useTransition();
+  const [isSubmitPending, startSubmitTransition] = useTransition();
 
   const initialPassengers = useMemo(
     () =>
@@ -108,33 +110,35 @@ export default function PassengersPage() {
   }
 
   function onSubmit(values: DuffelPassengersFormValues) {
-    setPassengers(
-      values.passengers.map((p) => ({
-        id: p.id,
-        type: p.type,
-        title: p.title,
-        given_name: p.given_name,
-        family_name: p.family_name,
-        born_on: p.born_on,
-        gender: p.gender,
-        email: p.email,
-        phone_number: toE164(p.phoneCountry, p.phoneLocalNumber),
-        ...(p.passportRequired
-          ? {
-              identity_documents: [
-                {
-                  type: "passport" as const,
-                  unique_identifier: p.passportNumber ?? "",
-                  issuing_country_code: p.passportIssuingCountry ?? "",
-                  expires_on: p.passportExpiresOn ?? "",
-                },
-              ],
-            }
-          : {}),
-        ...(p.infantResponsibleFor ? { infant_passenger_id: p.infantResponsibleFor } : {}),
-      }))
-    );
-    router.push("/request/review");
+    startSubmitTransition(() => {
+      setPassengers(
+        values.passengers.map((p) => ({
+          id: p.id,
+          type: p.type,
+          title: p.title,
+          given_name: p.given_name,
+          family_name: p.family_name,
+          born_on: p.born_on,
+          gender: p.gender,
+          email: p.email,
+          phone_number: toE164(p.phoneCountry, p.phoneLocalNumber),
+          ...(p.passportRequired
+            ? {
+                identity_documents: [
+                  {
+                    type: "passport" as const,
+                    unique_identifier: p.passportNumber ?? "",
+                    issuing_country_code: p.passportIssuingCountry ?? "",
+                    expires_on: p.passportExpiresOn ?? "",
+                  },
+                ],
+              }
+            : {}),
+          ...(p.infantResponsibleFor ? { infant_passenger_id: p.infantResponsibleFor } : {}),
+        }))
+      );
+      router.push("/request/review");
+    });
   }
 
   return (
@@ -426,10 +430,15 @@ export default function PassengersPage() {
           ) : null}
 
           <div className="flex items-center justify-between">
-            <Button type="button" variant="link" onClick={() => router.push(`/offer/${offer.id}`)}>
+            <Button
+              type="button"
+              variant="link"
+              loading={isBackPending}
+              onClick={() => startBackTransition(() => router.push(`/offer/${offer.id}`))}
+            >
               Voltar
             </Button>
-            <Button type="submit" className="bg-brand-gradient hover:bg-brand-gradient-hover">
+            <Button type="submit" loading={isSubmitPending} className="bg-brand-gradient hover:bg-brand-gradient-hover">
               Continuar para revisão
             </Button>
           </div>
