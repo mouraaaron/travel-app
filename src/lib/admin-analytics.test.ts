@@ -165,6 +165,42 @@ describe("spendByEmployee", () => {
   });
 });
 
+describe("requestSpend currency normalization", () => {
+  // Este teste roda como parte da suíte Vitest (`npm test`), disparado
+  // manualmente ou por CI a cada mudança — não é um código que executa no
+  // app em produção, é uma trava de regressão.
+  //
+  // Por quê: `map-offer.ts` converte o valor da oferta para BRL uma única
+  // vez, no momento em que ela é mapeada a partir da resposta bruta da
+  // Duffel (multiplicando pela taxa de câmbio resolvida naquela busca).
+  // `exchange_rate_to_brl`, a partir daí, sobrevive só como registro de
+  // auditoria de qual taxa foi usada — nunca como um fator que ainda falta
+  // aplicar. Confirmado contra a tabela `requests` real: toda linha com
+  // `exchange_rate_to_brl` não-nulo já está com `total_currency = "BRL"` e
+  // um valor que já reflete a conversão.
+  //
+  // Se `requestSpend()` em admin-analytics.ts for alterado no futuro para
+  // multiplicar por `exchange_rate_to_brl` de novo (um erro fácil de
+  // cometer, já que o campo "parece" não estar sendo usado), este teste
+  // falha: a taxa usada aqui (5.0881) é a mesma observada em requests reais
+  // já convertidas, então uma reaplicação indevida infla o total de forma
+  // visível.
+  it("does not reapply exchange_rate_to_brl — selected_offer_snapshot.total_amount is already converted to BRL", () => {
+    const snapshot = makeRequest().selected_offer_snapshot;
+    const requests = [
+      makeRequest({
+        id: "a",
+        employee_id: "A",
+        employeeName: "Alice",
+        status: "approved",
+        selected_offer_snapshot: { ...snapshot, total_amount: "1000.00", exchange_rate_to_brl: 5.0881 },
+      }),
+    ];
+
+    expect(spendByEmployee(requests)).toEqual([{ employeeId: "A", name: "Alice", total: 1000 }]);
+  });
+});
+
 describe("outOfPolicyByEmployee", () => {
   it("counts non-compliant requests per employee, sorted descending", () => {
     const compliant = makeRequest().policy_evaluation;

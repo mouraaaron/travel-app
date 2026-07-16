@@ -72,3 +72,9 @@ Em `src/lib/dev/database-schema.ts`, no node `requests`: adiciona a coluna `exch
 - Qualquer mudança em `src/lib/admin-analytics.ts` ou nos componentes de dashboard agregados — o achado de mistura de moeda fica documentado acima, resolvido para os dados existentes pelo backfill, sem guarda defensiva de código nesta spec.
 - Qualquer mudança em `src/lib/policy.ts`.
 - Recuperar a taxa histórica real do dia da busca original para os 9 registros USD — não existe essa informação, não há como reconstruir.
+
+## Follow-up (2026-07-16)
+
+Uma tentativa (externa, baseada numa leitura errada do código) de "corrigir" `requestSpend()` em `admin-analytics.ts` multiplicando `total_amount` por `exchange_rate_to_brl` quase reintroduziu, como código, exatamente a mistura de moeda que esta spec resolveu via backfill de dado. Reconfirmado nesta data, consultando a tabela `requests` ao vivo: 138 registros, todos `total_currency = "BRL"`, zero linhas em USD — o backfill segue válido, `requestSpend()` continua correto sem nenhuma conversão adicional.
+
+Para que esse engano não se repita, foi adicionado um teste de regressão em `src/lib/admin-analytics.test.ts` (`describe("requestSpend currency normalization", ...)`) que usa uma taxa real observada em produção (5.0881) e trava que o total continua igual a `total_amount` bruto — se alguém reaplicar a taxa no futuro, o teste falha. Continua sendo só um teste Vitest, rodado via `npm test`/CI; nada disso executa como parte do app em produção.
