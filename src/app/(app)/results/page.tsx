@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PencilLine, SearchX, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -130,6 +130,11 @@ export default function ResultsPage() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
 
+  const [isEditingSearch, startEditSearchTransition] = useTransition();
+  const [pendingOfferId, setPendingOfferId] = useState<string | null>(null);
+  const [pendingOfferAction, setPendingOfferAction] = useState<"view" | "select" | null>(null);
+  const [isOfferActionPending, startOfferActionTransition] = useTransition();
+
   useEffect(() => {
     if (!criteria) return;
     let cancelled = false;
@@ -202,13 +207,27 @@ export default function ResultsPage() {
   const passengerCount = criteria.passengers.length;
 
   function handleSelect(offer: FlightOffer) {
-    selectOffer(offer.id);
-    router.push(`/request/passengers/${offer.id}`);
+    setPendingOfferId(offer.id);
+    setPendingOfferAction("select");
+    startOfferActionTransition(() => {
+      selectOffer(offer.id);
+      router.push(`/request/passengers/${offer.id}`);
+    });
   }
 
   function handleViewDetails(offer: FlightOffer) {
-    selectOffer(offer.id);
-    router.push(`/offer/${offer.id}`);
+    setPendingOfferId(offer.id);
+    setPendingOfferAction("view");
+    startOfferActionTransition(() => {
+      selectOffer(offer.id);
+      router.push(`/offer/${offer.id}`);
+    });
+  }
+
+  function handleEditSearch() {
+    startEditSearchTransition(() => {
+      router.push("/");
+    });
   }
 
   const filtersPanelProps: FiltersPanelProps = {
@@ -237,7 +256,7 @@ export default function ResultsPage() {
             {passengerCount} passageiro{passengerCount > 1 ? "s" : ""} · {CABIN_LABELS[criteria.cabin_class]}
           </p>
         </div>
-        <Button variant="secondary" onClick={() => router.push("/")}>
+        <Button variant="secondary" loading={isEditingSearch} onClick={handleEditSearch}>
           <PencilLine className="mr-1.5 h-4 w-4" /> Editar busca
         </Button>
       </div>
@@ -294,6 +313,12 @@ export default function ResultsPage() {
                 offer={offer}
                 onSelect={() => handleSelect(offer)}
                 onViewDetails={() => handleViewDetails(offer)}
+                loadingSelect={
+                  isOfferActionPending && pendingOfferId === offer.id && pendingOfferAction === "select"
+                }
+                loadingView={
+                  isOfferActionPending && pendingOfferId === offer.id && pendingOfferAction === "view"
+                }
               />
             ))
           )}

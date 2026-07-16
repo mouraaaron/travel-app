@@ -26,10 +26,14 @@ export function OfferCard({
   offer,
   onSelect,
   onViewDetails,
+  loadingSelect = false,
+  loadingView = false,
 }: {
   offer: FlightOffer;
   onSelect: () => void;
   onViewDetails: () => void;
+  loadingSelect?: boolean;
+  loadingView?: boolean;
 }) {
   const evaluation = evaluateDuffelOffer(offer);
   const policyBadge = getDuffelPolicyBadge(evaluation);
@@ -102,10 +106,15 @@ export function OfferCard({
             ) : null}
           </div>
           <div className="flex gap-2">
-            <Button type="button" variant="secondary" onClick={onViewDetails}>
+            <Button type="button" variant="secondary" loading={loadingView} onClick={onViewDetails}>
               Ver detalhes
             </Button>
-            <Button type="button" className="bg-brand-gradient hover:bg-brand-gradient-hover" onClick={onSelect}>
+            <Button
+              type="button"
+              className="bg-brand-gradient hover:bg-brand-gradient-hover"
+              loading={loadingSelect}
+              onClick={onSelect}
+            >
               Selecionar
             </Button>
           </div>
