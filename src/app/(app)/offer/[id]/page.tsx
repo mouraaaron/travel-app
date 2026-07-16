@@ -1,5 +1,6 @@
 "use client";
 
+import { useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ export default function OfferDetailPage() {
   const { offers, selectOffer, criteria } = useTripFlow();
   const offer = offers.find((o) => o.id === id);
   const passengerCount = criteria?.passengers?.length ?? 1;
+  const [isPending, startTransition] = useTransition();
 
   if (!offer) {
     return (
@@ -38,8 +40,10 @@ export default function OfferDetailPage() {
 
   function handleSelectOffer() {
     if (!offer) return;
-    selectOffer(offer.id);
-    router.push(`/request/passengers/${offer.id}`);
+    startTransition(() => {
+      selectOffer(offer.id);
+      router.push(`/request/passengers/${offer.id}`);
+    });
   }
 
   return (
@@ -178,6 +182,7 @@ export default function OfferDetailPage() {
             <Button
               className="w-full bg-brand-gradient hover:bg-brand-gradient-hover"
               disabled={isExpired}
+              loading={isPending}
               onClick={handleSelectOffer}
             >
               Selecionar oferta
