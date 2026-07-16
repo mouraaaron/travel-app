@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -17,14 +16,16 @@ export function SignOutButton({ className }: { className?: string }) {
   }
 
   return (
-    <Button
+    <button
       type="button"
-      variant="outline"
-      size="sm"
-      className={cn("w-full justify-start border-transparent bg-white text-neutral-900 hover:bg-white/90", className)}
       onClick={handleSignOut}
+      className={cn(
+        "flex h-8 w-full items-center gap-3 rounded-none px-3 py-1.5 text-[13px] font-normal leading-[18px] text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+        className
+      )}
     >
-      <LogOut className="mr-1.5 h-4 w-4" /> Sair
-    </Button>
+      <LogOut className="h-4 w-4" />
+      Sair
+    </button>
   );
 }
