@@ -12,6 +12,7 @@ export function inCourseFlights(requests: AdminQueueRequest[]): InCourseFlight[]
     request.selected_offer_snapshot.slices.forEach((slice, index) => {
       const departure = new Date(slice.departure_datetime);
       const arrival = new Date(slice.arrival_datetime);
+      if (Number.isNaN(departure.getTime()) || Number.isNaN(arrival.getTime())) return;
       if (now < departure || now > arrival) return;
 
       const origin = findAirportByCode(slice.origin);

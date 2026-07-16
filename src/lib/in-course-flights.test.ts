@@ -145,4 +145,44 @@ describe("inCourseFlights", () => {
     ]);
     expect(result.map((f) => f.id).sort()).toEqual(["req_1:0", "req_2:0"]);
   });
+
+  it("excludes a slice whose origin or destination airport code is not in the catalog", () => {
+    vi.setSystemTime(new Date("2026-07-16T13:00:00Z"));
+    const request = makeRequest({
+      selected_offer_snapshot: {
+        ...makeRequest().selected_offer_snapshot,
+        slices: [
+          {
+            origin: "ZZZ",
+            destination: "GRU",
+            departure_datetime: "2026-07-16T12:00:00Z",
+            arrival_datetime: "2026-07-16T16:00:00Z",
+            duration: "PT1H30M",
+            segments_count: 1,
+          },
+        ],
+      },
+    });
+    expect(inCourseFlights([request])).toHaveLength(0);
+  });
+
+  it("excludes a slice with an unparseable departure or arrival datetime", () => {
+    vi.setSystemTime(new Date("2026-07-16T13:00:00Z"));
+    const request = makeRequest({
+      selected_offer_snapshot: {
+        ...makeRequest().selected_offer_snapshot,
+        slices: [
+          {
+            origin: "CNF",
+            destination: "GRU",
+            departure_datetime: "not-a-date",
+            arrival_datetime: "2026-07-16T16:00:00Z",
+            duration: "PT1H30M",
+            segments_count: 1,
+          },
+        ],
+      },
+    });
+    expect(inCourseFlights([request])).toHaveLength(0);
+  });
 });
