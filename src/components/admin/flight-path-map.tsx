@@ -85,6 +85,13 @@ export function FlightPathMap({ flights }: { flights: InCourseFlight[] }) {
                 const end = projectPoint(flight.destination.lat, flight.destination.lng);
                 const control = curveControlPoint(start, end);
                 const path = curvedPath(start, end);
+                const progress = flightProgress(flight.departureAt, flight.arrivalAt, now);
+                const { durationSeconds, beginOffsetSeconds } = flightTimingSeconds(
+                  flight.departureAt,
+                  flight.arrivalAt,
+                  now
+                );
+                const staticPlanePoint = bezierPointAt(progress, start, control, end);
 
                 return (
                   <g key={flight.id}>
@@ -124,53 +131,41 @@ export function FlightPathMap({ flights }: { flights: InCourseFlight[] }) {
                         </circle>
                       </g>
                     ))}
-                    {(() => {
-                      const progress = flightProgress(flight.departureAt, flight.arrivalAt, now);
-                      const { durationSeconds, beginOffsetSeconds } = flightTimingSeconds(
-                        flight.departureAt,
-                        flight.arrivalAt,
-                        now
-                      );
-                      const staticPlanePoint = bezierPointAt(progress, start, control, end);
-
-                      return (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <g
-                              transform={
-                                shouldReduceMotion
-                                  ? `translate(${staticPlanePoint.x} ${staticPlanePoint.y})`
-                                  : undefined
-                              }
-                              className="cursor-default"
-                            >
-                              {/* Small chevron drawn pointing along +x; SMIL's rotate="auto"
-                                  (or the static transform above, under reduced motion) orients
-                                  it along the curve's direction of travel. */}
-                              <polygon points="-4,-2.5 4,0 -4,2.5 -2,0" fill={LINE_COLOR}>
-                                {!shouldReduceMotion && (
-                                  <animateMotion
-                                    path={path}
-                                    dur={`${durationSeconds}s`}
-                                    begin={`${beginOffsetSeconds}s`}
-                                    fill="freeze"
-                                    rotate="auto"
-                                  />
-                                )}
-                              </polygon>
-                            </g>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="font-medium">{flight.employeeName}</p>
-                            <p>
-                              {flight.origin.label} → {flight.destination.label}
-                            </p>
-                            <p>Partida: {formatDateTime(flight.departureAt)}</p>
-                            <p>Chegada: {formatDateTime(flight.arrivalAt)}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      );
-                    })()}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <g
+                          transform={
+                            shouldReduceMotion
+                              ? `translate(${staticPlanePoint.x} ${staticPlanePoint.y})`
+                              : undefined
+                          }
+                          className="cursor-default"
+                        >
+                          {/* Small chevron drawn pointing along +x; SMIL's rotate="auto"
+                              (or the static transform above, under reduced motion) orients
+                              it along the curve's direction of travel. */}
+                          <polygon points="-4,-2.5 4,0 -4,2.5 -2,0" fill={LINE_COLOR}>
+                            {!shouldReduceMotion && (
+                              <animateMotion
+                                path={path}
+                                dur={`${durationSeconds}s`}
+                                begin={`${beginOffsetSeconds}s`}
+                                fill="freeze"
+                                rotate="auto"
+                              />
+                            )}
+                          </polygon>
+                        </g>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="font-medium">{flight.employeeName}</p>
+                        <p>
+                          {flight.origin.label} → {flight.destination.label}
+                        </p>
+                        <p>Partida: {formatDateTime(flight.departureAt)}</p>
+                        <p>Chegada: {formatDateTime(flight.arrivalAt)}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </g>
                 );
               })}
