@@ -185,4 +185,10 @@ describe("inCourseFlights", () => {
     });
     expect(inCourseFlights([request])).toHaveLength(0);
   });
+
+  it('marks every returned flight with status "in_course"', () => {
+    vi.setSystemTime(new Date("2026-07-16T13:00:00Z"));
+    const result = inCourseFlights([makeRequest()]);
+    expect(result[0].status).toBe("in_course");
+  });
 });

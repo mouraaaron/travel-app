@@ -31,6 +31,7 @@ export function inCourseFlights(requests: AdminQueueRequest[]): InCourseFlight[]
         },
         departureAt: slice.departure_datetime,
         arrivalAt: slice.arrival_datetime,
+        status: "in_course",
       });
     });
   }

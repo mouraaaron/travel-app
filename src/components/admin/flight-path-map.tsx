@@ -24,6 +24,7 @@ export interface InCourseFlight {
   destination: { code: string; label: string; lat: number; lng: number };
   departureAt: string;
   arrivalAt: string;
+  status: "in_course" | "completed";
 }
 
 const LINE_COLOR = "#0ea5e9";
