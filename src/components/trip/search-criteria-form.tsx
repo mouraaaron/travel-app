@@ -115,6 +115,7 @@ export function SearchCriteriaForm() {
                   <FormItem>
                     <ToggleGroup
                       type="single"
+                      pill
                       value={field.value}
                       onValueChange={(next) => {
                         if (!next) return;
