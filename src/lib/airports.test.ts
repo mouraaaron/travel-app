@@ -69,3 +69,39 @@ describe("extended CITIES coverage", () => {
     expect(findAirportByCode("ABV")).toBeDefined();
   });
 });
+
+describe("airport coordinates", () => {
+  it("returns numeric lat/lng for every airport in the catalog", () => {
+    for (const code of ["GRU", "CGH", "JFK", "LHR", "NRT", "ABV", "DXB"]) {
+      const airport = findAirportByCode(code);
+      expect(airport).toBeDefined();
+      expect(typeof airport?.lat).toBe("number");
+      expect(typeof airport?.lng).toBe("number");
+    }
+  });
+
+  it("places GRU (São Paulo/Guarulhos) in the southern hemisphere, west of the prime meridian", () => {
+    const gru = findAirportByCode("GRU");
+    expect(gru?.lat).toBeLessThan(0);
+    expect(gru?.lng).toBeLessThan(0);
+  });
+
+  it("places LHR (London Heathrow) in the northern hemisphere, west of the prime meridian", () => {
+    const lhr = findAirportByCode("LHR");
+    expect(lhr?.lat).toBeGreaterThan(0);
+    expect(lhr?.lng).toBeLessThan(0);
+  });
+
+  it("places NRT (Tokyo Narita) in the northern hemisphere, east of the prime meridian", () => {
+    const nrt = findAirportByCode("NRT");
+    expect(nrt?.lat).toBeGreaterThan(0);
+    expect(nrt?.lng).toBeGreaterThan(0);
+  });
+
+  it("returns lat/lng for every airport returned by a broad search", () => {
+    for (const option of searchAirports("a")) {
+      expect(typeof option.lat).toBe("number");
+      expect(typeof option.lng).toBe("number");
+    }
+  });
+});
