@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,6 +29,7 @@ export default function ReviewPage() {
   const [policyLoaded, setPolicyLoaded] = useState(false);
   const evaluation = offer ? evaluateDuffelOffer(offer, policyDefaults) : null;
   const [submitting, setSubmitting] = useState(false);
+  const [isBackPending, startBackTransition] = useTransition();
 
   useEffect(() => {
     let cancelled = false;
@@ -284,7 +285,12 @@ export default function ReviewPage() {
           </Card>
 
           <div className="flex items-center justify-between">
-            <Button type="button" variant="link" onClick={() => router.push(`/request/passengers/${offer.id}`)}>
+            <Button
+              type="button"
+              variant="link"
+              loading={isBackPending}
+              onClick={() => startBackTransition(() => router.push(`/request/passengers/${offer.id}`))}
+            >
               Voltar
             </Button>
             <Button
