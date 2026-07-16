@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import DottedMap from "dotted-map";
 import { motion, useReducedMotion } from "framer-motion";
 import { Plane } from "lucide-react";
@@ -42,11 +42,20 @@ export function FlightPathMap({ flights }: { flights: InCourseFlight[] }) {
   const shouldReduceMotion = useReducedMotion();
   const gradientId = useId();
   const svgMap = useMemo(generateDottedMapSvg, []);
-  // Computed once per render, then shared by every flight's progress/timing
-  // math below — not per-flight `new Date()` calls, and not re-computed on
-  // a timer (the plane's continued motion after this point is handled by
-  // the browser via SMIL, not by React re-rendering).
-  const now = useMemo(() => new Date(), []);
+  // `now` reads the wall clock, so it must NOT be computed during the
+  // server render (or during the client's first pre-hydration render) —
+  // either would make the server HTML and the client's initial render
+  // disagree, causing a hydration mismatch. Instead, it starts `null`
+  // (identical on server and first client render) and is populated once,
+  // client-side only, right after mount. It is still shared by every
+  // flight's progress/timing math below — not per-flight `new Date()`
+  // calls — and is never re-computed on a timer (the plane's continued
+  // motion after this point is handled by the browser via SMIL, not by
+  // React re-rendering).
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
 
   return (
     <Card>
@@ -76,13 +85,6 @@ export function FlightPathMap({ flights }: { flights: InCourseFlight[] }) {
                 const end = projectPoint(flight.destination.lat, flight.destination.lng);
                 const control = curveControlPoint(start, end);
                 const path = curvedPath(start, end);
-                const progress = flightProgress(flight.departureAt, flight.arrivalAt, now);
-                const { durationSeconds, beginOffsetSeconds } = flightTimingSeconds(
-                  flight.departureAt,
-                  flight.arrivalAt,
-                  now
-                );
-                const staticPlanePoint = bezierPointAt(progress, start, control, end);
 
                 return (
                   <g key={flight.id}>
@@ -122,41 +124,54 @@ export function FlightPathMap({ flights }: { flights: InCourseFlight[] }) {
                         </circle>
                       </g>
                     ))}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <g
-                          transform={
-                            shouldReduceMotion
-                              ? `translate(${staticPlanePoint.x} ${staticPlanePoint.y})`
-                              : undefined
-                          }
-                          className="cursor-default"
-                        >
-                          {/* Small chevron drawn pointing along +x; SMIL's rotate="auto"
-                              (or the static transform above, under reduced motion) orients
-                              it along the curve's direction of travel. */}
-                          <polygon points="-4,-2.5 4,0 -4,2.5 -2,0" fill={LINE_COLOR}>
-                            {!shouldReduceMotion && (
-                              <animateMotion
-                                path={path}
-                                dur={`${durationSeconds}s`}
-                                begin={`${beginOffsetSeconds}s`}
-                                fill="freeze"
-                                rotate="auto"
-                              />
-                            )}
-                          </polygon>
-                        </g>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="font-medium">{flight.employeeName}</p>
-                        <p>
-                          {flight.origin.label} → {flight.destination.label}
-                        </p>
-                        <p>Partida: {formatDateTime(flight.departureAt)}</p>
-                        <p>Chegada: {formatDateTime(flight.arrivalAt)}</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    {now &&
+                      (() => {
+                        const progress = flightProgress(flight.departureAt, flight.arrivalAt, now);
+                        const { durationSeconds, beginOffsetSeconds } = flightTimingSeconds(
+                          flight.departureAt,
+                          flight.arrivalAt,
+                          now
+                        );
+                        const staticPlanePoint = bezierPointAt(progress, start, control, end);
+
+                        return (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <g
+                                transform={
+                                  shouldReduceMotion
+                                    ? `translate(${staticPlanePoint.x} ${staticPlanePoint.y})`
+                                    : undefined
+                                }
+                                className="cursor-default"
+                              >
+                                {/* Small chevron drawn pointing along +x; SMIL's rotate="auto"
+                                    (or the static transform above, under reduced motion) orients
+                                    it along the curve's direction of travel. */}
+                                <polygon points="-4,-2.5 4,0 -4,2.5 -2,0" fill={LINE_COLOR}>
+                                  {!shouldReduceMotion && (
+                                    <animateMotion
+                                      path={path}
+                                      dur={`${durationSeconds}s`}
+                                      begin={`${beginOffsetSeconds}s`}
+                                      fill="freeze"
+                                      rotate="auto"
+                                    />
+                                  )}
+                                </polygon>
+                              </g>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-medium">{flight.employeeName}</p>
+                              <p>
+                                {flight.origin.label} → {flight.destination.label}
+                              </p>
+                              <p>Partida: {formatDateTime(flight.departureAt)}</p>
+                              <p>Chegada: {formatDateTime(flight.arrivalAt)}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })()}
                   </g>
                 );
               })}
