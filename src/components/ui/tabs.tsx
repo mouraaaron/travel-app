@@ -4,28 +4,43 @@ import * as React from "react"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
 
 import { cn } from "@/lib/utils"
+import { useSpringPill } from "@/components/ui/use-spring-pill"
 
 const Tabs = TabsPrimitive.Root
+
+type TabsIndicatorMode = "underline" | "pill" | "none"
+
+function normalizeIndicator(indicator: boolean | TabsIndicatorMode): TabsIndicatorMode {
+  if (indicator === true) return "underline"
+  if (indicator === false) return "none"
+  return indicator
+}
+
+const TabsIndicatorContext = React.createContext<TabsIndicatorMode>("underline")
 
 interface TabsListProps
   extends React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> {
   /**
-   * Renders a sliding underline indicator that tweens between the active
-   * trigger's position and width (transitions-dev "tabs sliding", 250ms /
-   * cubic-bezier(0.22,1,0.36,1)). Defaults to `true`, matching this repo's
-   * house underline-tab style. Set `false` for the default pill segmented
-   * control (e.g. status filter tabs) where the per-tab background already
-   * signals the active option.
+   * "underline" (default) renders a sliding underline that tweens between the
+   * active trigger's position and width (transitions-dev "tabs sliding", 250ms /
+   * cubic-bezier(0.22,1,0.36,1)). "pill" renders a spring-animated pill behind
+   * the active trigger instead (segmented-control spring transition spec,
+   * docs/superpowers/specs/2026-07-16-segmented-control-spring-transition-design.md).
+   * "none" renders neither — each trigger paints its own active background
+   * instead (default shadcn look). `true`/`false` are accepted as aliases for
+   * "underline"/"none" for backward compatibility with existing call sites.
    */
-  indicator?: boolean
+  indicator?: boolean | TabsIndicatorMode
 }
 
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   TabsListProps
->(({ className, indicator = true, children, ...props }, ref) => {
+>(({ className, indicator = "underline", children, ...props }, ref) => {
+  const mode = normalizeIndicator(indicator)
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const barRef = React.useRef<HTMLSpanElement | null>(null)
+  const { pillRef, sync: syncPill } = useSpringPill("horizontal")
 
   // Merge the forwarded ref with our internal measuring ref.
   const setRefs = React.useCallback(
@@ -38,16 +53,13 @@ const TabsList = React.forwardRef<
     [ref]
   )
 
+  // Underline mode: existing CSS-transition-driven bar (unchanged behavior).
   React.useLayoutEffect(() => {
-    if (!indicator) return
+    if (mode !== "underline") return
     const list = listRef.current
     const bar = barRef.current
     if (!list || !bar) return
 
-    // Write the active tab's offsetLeft / offsetWidth onto the bar. When
-    // `animate` is false we suspend the transition and force a reflow so the
-    // bar snaps into place (first paint, resize, font load) instead of
-    // sliding in from translateX(0) / width:0.
     const move = (animate: boolean) => {
       const active = list.querySelector<HTMLElement>(
         '[role="tab"][data-state="active"]'
@@ -73,11 +85,8 @@ const TabsList = React.forwardRef<
       }
     }
 
-    // Snap to the active tab once layout settles.
     const raf = requestAnimationFrame(() => move(false))
 
-    // Slide whenever Radix flips data-state on a trigger (tab change). Stamp
-    // the time so the resize handler below knows an animation is in flight.
     let lastChangeAt = 0
     const mo = new MutationObserver(() => {
       lastChangeAt = performance.now()
@@ -89,10 +98,6 @@ const TabsList = React.forwardRef<
         mo.observe(t, { attributes: true, attributeFilter: ["data-state"] })
       )
 
-    // Container resize. A tab change can itself change the page height and
-    // toggle the scrollbar, which resizes this w-full list — so a plain snap
-    // here would stomp the slide. Only hard-snap on a real resize; if a tab
-    // change just fired, re-place WITH animation so the slide survives.
     let lastWidth = list.offsetWidth
     const ro = new ResizeObserver(() => {
       const w = list.offsetWidth
@@ -102,8 +107,6 @@ const TabsList = React.forwardRef<
     })
     ro.observe(list)
 
-    // Poligon loads async — re-snap once metrics settle so the bar width
-    // matches the final tab widths.
     if (typeof document !== "undefined" && "fonts" in document) {
       document.fonts.ready.then(() => move(false)).catch(() => {})
     }
@@ -113,31 +116,76 @@ const TabsList = React.forwardRef<
       mo.disconnect()
       ro.disconnect()
     }
-    // Run once per indicator toggle; the observers handle subsequent changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [indicator])
+  }, [mode])
+
+  // Pill mode: spring-animated pill (segmented control spring transition spec).
+  React.useLayoutEffect(() => {
+    if (mode !== "pill") return
+    const list = listRef.current
+    if (!list) return
+
+    const findActive = () =>
+      list.querySelector<HTMLElement>('[role="tab"][data-state="active"]')
+
+    const waitForActiveAndSnap = (attempt = 0) => {
+      const active = findActive()
+      if (!active && attempt < 60) {
+        requestAnimationFrame(() => waitForActiveAndSnap(attempt + 1))
+        return
+      }
+      syncPill(active, true)
+    }
+    const raf = requestAnimationFrame(() => waitForActiveAndSnap())
+
+    const mo = new MutationObserver(() => syncPill(findActive(), false))
+    list
+      .querySelectorAll('[role="tab"]')
+      .forEach((t) =>
+        mo.observe(t, { attributes: true, attributeFilter: ["data-state"] })
+      )
+
+    const ro = new ResizeObserver(() => syncPill(findActive(), false))
+    ro.observe(list)
+
+    return () => {
+      cancelAnimationFrame(raf)
+      mo.disconnect()
+      ro.disconnect()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode])
 
   return (
-    <TabsPrimitive.List
-      ref={setRefs}
-      className={cn(
-        "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
-        // Indicator mode: position context + hide the per-trigger static
-        // underline so only the single sliding bar is visible.
-        indicator && "relative [&_[role=tab]]:!border-b-transparent",
-        className
-      )}
-      {...props}
-    >
-      {children}
-      {indicator && (
-        <span
-          ref={barRef}
-          aria-hidden="true"
-          className="pointer-events-none absolute -bottom-px left-0 h-0.5 w-0 rounded-full bg-[#18181b] opacity-0 [transition-property:transform,width,opacity] [transition-duration:var(--tabs-dur)] [transition-timing-function:var(--tabs-ease)] [will-change:transform,width] motion-reduce:!transition-none"
-        />
-      )}
-    </TabsPrimitive.List>
+    <TabsIndicatorContext.Provider value={mode}>
+      <TabsPrimitive.List
+        ref={setRefs}
+        className={cn(
+          "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
+          mode !== "none" && "relative [&_[role=tab]]:!border-b-transparent",
+          className
+        )}
+        {...props}
+      >
+        {mode === "pill" && (
+          <span
+            ref={(node) => {
+              pillRef.current = node
+            }}
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1 top-1 z-0 rounded-sm bg-background opacity-0 shadow-sm"
+          />
+        )}
+        {children}
+        {mode === "underline" && (
+          <span
+            ref={barRef}
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-px left-0 h-0.5 w-0 rounded-full bg-[#18181b] opacity-0 [transition-property:transform,width,opacity] [transition-duration:var(--tabs-dur)] [transition-timing-function:var(--tabs-ease)] [will-change:transform,width] motion-reduce:!transition-none"
+          />
+        )}
+      </TabsPrimitive.List>
+    </TabsIndicatorContext.Provider>
   )
 })
 TabsList.displayName = TabsPrimitive.List.displayName
@@ -145,16 +193,21 @@ TabsList.displayName = TabsPrimitive.List.displayName
 const TabsTrigger = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-[color,background-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
-      className
-    )}
-    {...props}
-  />
-))
+>(({ className, ...props }, ref) => {
+  const mode = React.useContext(TabsIndicatorContext)
+  return (
+    <TabsPrimitive.Trigger
+      ref={ref}
+      className={cn(
+        "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-[color,background-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-foreground",
+        mode !== "pill" && "data-[state=active]:bg-background data-[state=active]:shadow-sm",
+        mode === "pill" && "relative z-10",
+        className
+      )}
+      {...props}
+    />
+  )
+})
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
 
 const TabsContent = React.forwardRef<
