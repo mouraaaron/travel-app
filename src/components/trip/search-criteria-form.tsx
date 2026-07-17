@@ -216,21 +216,20 @@ export function SearchCriteriaForm() {
                       />
                     ) : (
                       <FormItem>
-                        <FormLabel>{tripType === "round_trip" ? "Ida e volta" : "Data de ida"}</FormLabel>
-                        <FormControl>
-                          <TripDatesPopover
-                            mode="range"
-                            departureDate={form.watch(`slices.${index}.departureDate`)}
-                            returnDate={tripType === "round_trip" ? form.watch("returnDate") : undefined}
-                            onChangeDeparture={(value) =>
-                              form.setValue(`slices.${index}.departureDate`, value, { shouldValidate: true })
-                            }
-                            onChangeReturn={(value) =>
-                              form.setValue("returnDate", value ?? "", { shouldValidate: true })
-                            }
-                            minDate={parseFormDate(TODAY)}
-                          />
-                        </FormControl>
+                        <Label>{tripType === "round_trip" ? "Ida e volta" : "Data de ida"}</Label>
+                        <TripDatesPopover
+                          mode="range"
+                          departureDate={form.watch(`slices.${index}.departureDate`)}
+                          returnDate={tripType === "round_trip" ? form.watch("returnDate") : undefined}
+                          onChangeDeparture={(value) =>
+                            form.setValue(`slices.${index}.departureDate`, value, { shouldValidate: true })
+                          }
+                          onChangeReturn={(value) =>
+                            form.setValue("returnDate", value ?? "", { shouldValidate: true })
+                          }
+                          minDate={parseFormDate(TODAY)}
+                          allowRange={tripType === "round_trip"}
+                        />
                         {form.formState.errors.slices?.[index]?.departureDate?.message ? (
                           <p className="text-xs text-destructive">
                             {form.formState.errors.slices[index]?.departureDate?.message}

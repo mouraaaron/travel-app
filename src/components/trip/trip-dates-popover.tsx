@@ -26,6 +26,14 @@ type TripDatesPopoverProps =
       onChangeDeparture: (value: string) => void;
       onChangeReturn: (value: string | undefined) => void;
       minDate?: Date;
+      /**
+       * False when this instance has no return-date concept (one way sharing
+       * the round-trip calendar UI). react-day-picker's range mode treats a
+       * second click as completing a [from, to] range, which would silently
+       * discard a one-way user's attempt to change their departure date —
+       * so each click replaces the departure date instead of extending a range.
+       */
+      allowRange?: boolean;
     };
 
 export function TripDatesPopover(props: TripDatesPopoverProps) {
@@ -58,7 +66,7 @@ export function TripDatesPopover(props: TripDatesPopoverProps) {
     );
   }
 
-  const { departureDate, returnDate, onChangeDeparture, onChangeReturn, minDate } = props;
+  const { departureDate, returnDate, onChangeDeparture, onChangeReturn, minDate, allowRange = true } = props;
   const range: DateRange = {
     from: parseFormDate(departureDate),
     to: parseFormDate(returnDate),
@@ -78,7 +86,12 @@ export function TripDatesPopover(props: TripDatesPopoverProps) {
           selected={range}
           defaultMonth={range.from ?? minDate}
           disabled={minDate ? { before: minDate } : undefined}
-          onSelect={(selected) => {
+          onSelect={(selected, triggerDate) => {
+            if (!allowRange) {
+              onChangeDeparture(formatFormDate(triggerDate));
+              onChangeReturn(undefined);
+              return;
+            }
             onChangeDeparture(selected?.from ? formatFormDate(selected.from) : "");
             onChangeReturn(selected?.to ? formatFormDate(selected.to) : undefined);
           }}
