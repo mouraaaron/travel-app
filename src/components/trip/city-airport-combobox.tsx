@@ -19,7 +19,7 @@ export function CityAirportCombobox({
   autoFocus?: boolean;
 }) {
   const inputId = useId();
-  const [query, setQuery] = useState(() => findAirportByCode(value)?.label ?? "");
+  const [query, setQuery] = useState(() => findAirportByCode(value)?.label ?? value);
   const [open, setOpen] = useState(false);
   const blurTimeout = useRef<ReturnType<typeof setTimeout>>();
 
