@@ -89,5 +89,18 @@ export function selectFlightsForMap(
   const completedPool = dedupeByRoute(completedCandidates(requests, now), inCourseRouteKeys);
   const chosenCompleted = completedPool.slice(0, remainingSlots);
 
+  const alreadyInternational =
+    inCourse.some((flight) => isInternational(flight.destination.code)) ||
+    chosenCompleted.some((candidate) => candidate.international);
+
+  if (!alreadyInternational && chosenCompleted.length > 0) {
+    const unusedInternational = completedPool
+      .slice(remainingSlots)
+      .find((candidate) => candidate.international);
+    if (unusedInternational) {
+      chosenCompleted[chosenCompleted.length - 1] = unusedInternational;
+    }
+  }
+
   return [...inCourse, ...chosenCompleted.map((candidate) => candidate.flight)];
 }
