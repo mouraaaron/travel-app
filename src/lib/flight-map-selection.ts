@@ -79,6 +79,8 @@ export function selectFlightsForMap(
   requests: AdminQueueRequest[],
   now: Date = new Date()
 ): InCourseFlight[] {
+  // inCourseFlights() always evaluates against the real wall clock, so `now` only
+  // governs the completed-flight half below — pass a historical `now` with care.
   const inCourse = inCourseFlights(requests).slice(0, MAX_FLIGHTS);
   const remainingSlots = MAX_FLIGHTS - inCourse.length;
   if (remainingSlots <= 0) return inCourse;
