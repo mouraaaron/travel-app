@@ -14,6 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CityAirportCombobox } from "@/components/trip/city-airport-combobox";
+import { TripDatesPopover } from "@/components/trip/trip-dates-popover";
+import { parseFormDate } from "@/components/trip/trip-dates-popover-utils";
 import { WizardStepper } from "@/components/trip/wizard-stepper";
 import { tripSearchSchema, tripSearchToCriteria, type TripSearchFormValues } from "@/lib/search-schema";
 import { useTripFlow } from "@/lib/trip-flow-store";
@@ -187,23 +189,58 @@ export function SearchCriteriaForm() {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name={`slices.${index}.departureDate`}
-                      render={({ field: dateField }) => (
-                        <FormItem>
-                          <FormLabel>Data de ida</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="date"
-                              min={index === 0 ? TODAY : form.watch(`slices.${index - 1}.departureDate`) || TODAY}
-                              {...dateField}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {tripType === "multi_city" ? (
+                      <FormField
+                        control={form.control}
+                        name={`slices.${index}.departureDate`}
+                        render={({ field: dateField }) => (
+                          <FormItem>
+                            <FormLabel>Data de ida</FormLabel>
+                            <FormControl>
+                              <TripDatesPopover
+                                mode="single"
+                                date={dateField.value}
+                                onChange={dateField.onChange}
+                                minDate={
+                                  parseFormDate(
+                                    index === 0
+                                      ? TODAY
+                                      : form.watch(`slices.${index - 1}.departureDate`) || TODAY
+                                  )
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    ) : (
+                      <FormItem>
+                        <FormLabel>{tripType === "round_trip" ? "Ida e volta" : "Data de ida"}</FormLabel>
+                        <FormControl>
+                          <TripDatesPopover
+                            mode="range"
+                            departureDate={form.watch(`slices.${index}.departureDate`)}
+                            returnDate={tripType === "round_trip" ? form.watch("returnDate") : undefined}
+                            onChangeDeparture={(value) =>
+                              form.setValue(`slices.${index}.departureDate`, value, { shouldValidate: true })
+                            }
+                            onChangeReturn={(value) =>
+                              form.setValue("returnDate", value ?? "", { shouldValidate: true })
+                            }
+                            minDate={parseFormDate(TODAY)}
+                          />
+                        </FormControl>
+                        {form.formState.errors.slices?.[index]?.departureDate?.message ? (
+                          <p className="text-xs text-destructive">
+                            {form.formState.errors.slices[index]?.departureDate?.message}
+                          </p>
+                        ) : null}
+                        {tripType === "round_trip" && form.formState.errors.returnDate?.message ? (
+                          <p className="text-xs text-destructive">{form.formState.errors.returnDate.message}</p>
+                        ) : null}
+                      </FormItem>
+                    )}
                   </div>
                 </div>
               ))}
@@ -217,22 +254,6 @@ export function SearchCriteriaForm() {
                 >
                   <Plus className="mr-1.5 h-3.5 w-3.5" /> Trecho
                 </Button>
-              ) : null}
-
-              {tripType === "round_trip" ? (
-                <FormField
-                  control={form.control}
-                  name="returnDate"
-                  render={({ field }) => (
-                    <FormItem className="max-w-xs">
-                      <FormLabel>Data de volta</FormLabel>
-                      <FormControl>
-                        <Input type="date" min={form.watch("slices.0.departureDate") || TODAY} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               ) : null}
 
               <div className="flex flex-col gap-2">
