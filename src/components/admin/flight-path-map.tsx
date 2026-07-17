@@ -33,7 +33,18 @@ const FLIGHT_COLOR: Record<InCourseFlight["status"], string> = {
 };
 
 function generateDottedMapSvg(): string {
-  const map = new DottedMap({ height: 100, grid: "diagonal" });
+  // Must match `projectPoint`'s linear equirectangular math exactly (see
+  // flight-map-geometry.ts): dotted-map defaults to a Mercator projection
+  // cropped to lat [-56, 71], which places its dots at different pixel
+  // positions than our flight paths' lat/lng math expects, making routes
+  // land in the ocean. Forcing the same projection and the full lat/lng
+  // range keeps the two coordinate systems in agreement.
+  const map = new DottedMap({
+    height: 100,
+    grid: "diagonal",
+    projection: { name: "equirectangular" },
+    region: { lat: { min: -90, max: 90 }, lng: { min: -180, max: 180 } },
+  });
   return map.getSVG({
     radius: 0.22,
     color: "#00000040",
