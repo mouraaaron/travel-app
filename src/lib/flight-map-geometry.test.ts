@@ -20,7 +20,7 @@ describe("FLIGHT_MAP_PROJECTION / FLIGHT_MAP_REGION", () => {
       projection: FLIGHT_MAP_PROJECTION,
       region: FLIGHT_MAP_REGION,
     });
-    expect(map.width).toBe(map.height * 2);
+    expect(map.image.width).toBe(map.image.height * 2);
   });
 });
 
@@ -128,7 +128,7 @@ describe("dot-map alignment (regression guard for airport pins landing off the c
     const expected = projectPoint(airport.lat, airport.lng);
     const pin = map.getPin({ lat: airport.lat, lng: airport.lng });
     if (!pin) throw new Error(`DottedMap has no pin for ${code} — check FLIGHT_MAP_REGION bounds`);
-    const actual = { x: pin.x * (800 / map.width), y: pin.y * (400 / map.height) };
+    const actual = { x: pin.x * (800 / map.image.width), y: pin.y * (400 / map.image.height) };
 
     const offset = Math.hypot(actual.x - expected.x, actual.y - expected.y);
     expect(offset).toBeLessThan(8);
