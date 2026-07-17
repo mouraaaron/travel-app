@@ -56,7 +56,7 @@ function makeRequest(overrides: Partial<AdminQueueRequest> = {}): AdminQueueRequ
 }
 
 describe("filterRequestsForQueue", () => {
-  it("keeps only pending_admin requests on the pending tab, oldest first", () => {
+  it("keeps only pending_admin requests on the pending tab, newest first", () => {
     const requests = [
       makeRequest({ id: "a", status: "approved", created_at: "2026-07-01T00:00:00Z" }),
       makeRequest({ id: "b", status: "pending_admin", created_at: "2026-07-07T11:02:00Z" }),
@@ -65,7 +65,7 @@ describe("filterRequestsForQueue", () => {
 
     const result = filterRequestsForQueue(requests, { tab: "pending", query: "" });
 
-    expect(result.map((r) => r.id)).toEqual(["c", "b"]);
+    expect(result.map((r) => r.id)).toEqual(["b", "c"]);
   });
 
   it("on the all tab, filters by employee name case-insensitively", () => {
