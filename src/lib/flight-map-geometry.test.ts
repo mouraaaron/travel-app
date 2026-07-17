@@ -10,6 +10,7 @@ import {
   flightTimingSeconds,
   projectPoint,
 } from "./flight-map-geometry";
+import { findAirportByCode } from "./airports";
 
 describe("FLIGHT_MAP_PROJECTION / FLIGHT_MAP_REGION", () => {
   it("produces a DottedMap with an exact 2:1 aspect ratio, matching the 800x400 overlay viewBox", () => {
@@ -103,5 +104,33 @@ describe("flightTimingSeconds", () => {
     const now = new Date("2026-07-16T12:00:00Z");
     const result = flightTimingSeconds("2026-07-16T12:00:00Z", "2026-07-16T12:00:00Z", now);
     expect(result.durationSeconds).toBeGreaterThan(0);
+  });
+});
+
+describe("dot-map alignment (regression guard for airport pins landing off the coastline)", () => {
+  const map = new DottedMap({
+    height: 100,
+    grid: "diagonal",
+    projection: FLIGHT_MAP_PROJECTION,
+    region: FLIGHT_MAP_REGION,
+  });
+
+  // One airport per latitude band actually present in src/lib/airports.ts —
+  // the original bug's error grew with |latitude|, so this deliberately
+  // spans from near-equator (MAO) to the highest-|lat| airports in the
+  // network (POA, LHR), across both hemispheres.
+  const codes = ["MAO", "GRU", "GIG", "BSB", "POA", "JFK", "LHR", "NRT", "JNB", "SCL"];
+
+  it.each(codes)("keeps %s within 8px of its dotted-map pin (800x400 space)", (code) => {
+    const airport = findAirportByCode(code);
+    if (!airport) throw new Error(`Missing test fixture airport: ${code}`);
+
+    const expected = projectPoint(airport.lat, airport.lng);
+    const pin = map.getPin({ lat: airport.lat, lng: airport.lng });
+    if (!pin) throw new Error(`DottedMap has no pin for ${code} — check FLIGHT_MAP_REGION bounds`);
+    const actual = { x: pin.x * (800 / map.width), y: pin.y * (400 / map.height) };
+
+    const offset = Math.hypot(actual.x - expected.x, actual.y - expected.y);
+    expect(offset).toBeLessThan(8);
   });
 });
