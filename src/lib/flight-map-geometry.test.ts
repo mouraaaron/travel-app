@@ -1,12 +1,27 @@
+import DottedMap from "dotted-map";
 import { describe, expect, it } from "vitest";
 import {
   bezierPointAt,
   curvedPath,
   curveControlPoint,
+  FLIGHT_MAP_PROJECTION,
+  FLIGHT_MAP_REGION,
   flightProgress,
   flightTimingSeconds,
   projectPoint,
 } from "./flight-map-geometry";
+
+describe("FLIGHT_MAP_PROJECTION / FLIGHT_MAP_REGION", () => {
+  it("produces a DottedMap with an exact 2:1 aspect ratio, matching the 800x400 overlay viewBox", () => {
+    const map = new DottedMap({
+      height: 100,
+      grid: "diagonal",
+      projection: FLIGHT_MAP_PROJECTION,
+      region: FLIGHT_MAP_REGION,
+    });
+    expect(map.width).toBe(map.height * 2);
+  });
+});
 
 describe("projectPoint", () => {
   it("projects the equator/prime-meridian origin to the center of the 800x400 viewBox", () => {

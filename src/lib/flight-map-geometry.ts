@@ -1,7 +1,23 @@
+import type { Projection, Region } from "dotted-map";
+
 export interface Point {
   x: number;
   y: number;
 }
+
+/** dotted-map config for the flight-path-map background: forces the same
+ * linear equirectangular projection and full lat/lng range that
+ * `projectPoint` below assumes. dotted-map defaults to a Mercator
+ * projection cropped to lat [-56, 71] — mismatched against this file's
+ * linear math, which is what originally made flight routes land in the
+ * ocean. Any code constructing that DottedMap MUST spread these two
+ * constants into the constructor instead of writing its own literals, or
+ * the two coordinate systems can drift apart again. */
+export const FLIGHT_MAP_PROJECTION: Projection = { name: "equirectangular" };
+export const FLIGHT_MAP_REGION: Region = {
+  lat: { min: -90, max: 90 },
+  lng: { min: -180, max: 180 },
+};
 
 /** Same linear (equirectangular) projection as the Aceternity/21st.dev
  * `world-map` component, so lines drawn here land exactly on that map's
