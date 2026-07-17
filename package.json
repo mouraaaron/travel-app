@@ -12,6 +12,7 @@
     "seed:sectors": "tsx --env-file=.env.local scripts/seed-sector-demo-employees.ts",
     "seed:onsite-profiles": "tsx --env-file=.env.local scripts/seed-onsite-week-travel-profiles.ts",
     "seed:reset": "tsx --env-file=.env.local scripts/reset-demo-data.ts",
+    "seed:demo-flight": "tsx --env-file=.env.local scripts/seed-demo-day-flight.ts",
     "backfill-usd-requests": "tsx --env-file=.env.local scripts/backfill-usd-requests-to-brl.ts"
   },
   "dependencies": {

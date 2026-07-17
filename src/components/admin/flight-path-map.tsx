@@ -41,13 +41,15 @@ const FLIGHT_COLOR: Record<InCourseFlight["status"], string> = {
 const PLANE_ICON_PATH =
   "M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z";
 
-// Lucide's Plane glyph is authored pointing toward the upper-right at rest, not
-// along +x. animateMotion's rotate="auto" already orients the element along the
-// curve's tangent assuming a resting orientation of "pointing along +x" (that's
-// why the domestic chevron below is drawn pointing along +x with no rotation
-// offset). This constant corrects the mismatch; tune it in Step 5's manual check
-// if the nose doesn't visibly point along the direction of travel.
-const PLANE_ICON_ROTATION_OFFSET_DEG = -45;
+// Lucide's Plane glyph is authored nose-up-right at rest, not along +x:
+// the nose vertex sits at raw path coordinates (21, 3) and the tail vertex
+// at (3, 16), giving a rest heading of atan2(3-16, 21-3) ≈ -35.9°.
+// animateMotion's rotate="auto" orients the element assuming a resting
+// heading of 0° (pointing along +x) — same convention the domestic chevron
+// below already satisfies by construction (its tip sits at local (4, 0)).
+// Rotating by +36° here cancels the glyph's own -35.9° bias so the nose
+// sits at local 0° before rotate="auto" adds the path's tangent on top.
+const PLANE_ICON_ROTATION_OFFSET_DEG = 36;
 
 // Scales the 24x24 lucide glyph down into the map's 800x400 unit space, landing
 // at roughly the same visual weight as an international curve can support
