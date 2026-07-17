@@ -120,6 +120,9 @@
   --reveal-dur: 400ms;
   --reveal-blur: 2px;
   --reveal-ease: ease-in-out;
+  /* Admin skeleton shimmer sweep (loading.tsx placeholders) */
+  --admin-skeleton-dur: 1.4s;
+  --admin-skeleton-ease: ease-in-out;
   /* Shimmer text */
   --shimmer-dur: 2000ms;
   --shimmer-base: #7c7c7c;
@@ -258,4 +261,24 @@
 
 @media (prefers-reduced-motion: reduce) {
   .t-button-sweep { display: none; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Admin skeleton shimmer. A light band sweeps left-to-right across
+ * loading.tsx placeholder bars under /admin/*. Rendered by <Skeleton
+ * variant="shimmer"> (see src/components/ui/skeleton.tsx).
+ * ───────────────────────────────────────────────────────────────────────── */
+.t-admin-skeleton-shimmer {
+  background: linear-gradient(90deg, hsl(var(--border)) 25%, hsl(var(--muted)) 37%, hsl(var(--border)) 63%);
+  background-size: 800px 100%;
+  animation: t-admin-skeleton-shimmer-move var(--admin-skeleton-dur) var(--admin-skeleton-ease) infinite;
+}
+
+@keyframes t-admin-skeleton-shimmer-move {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-admin-skeleton-shimmer { animation: none; background-position: 0 0; }
 }
