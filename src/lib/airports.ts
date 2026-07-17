@@ -256,3 +256,7 @@ export function isInternational(iataCode: string): boolean {
   }
   return false;
 }
+
+export function isInternationalRoute(originCode: string, destinationCode: string): boolean {
+  return isInternational(originCode) || isInternational(destinationCode);
+}

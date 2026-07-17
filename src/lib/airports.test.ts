@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COUNTRIES, findAirportByCode, isInternational, searchAirports } from "./airports";
+import { COUNTRIES, findAirportByCode, isInternational, isInternationalRoute, searchAirports } from "./airports";
 
 describe("searchAirports", () => {
   it("returns both airports for a city with more than one", () => {
@@ -48,6 +48,28 @@ describe("isInternational", () => {
 
   it("returns false for an unknown code (fail safe, treat as domestic)", () => {
     expect(isInternational("ZZZ")).toBe(false);
+  });
+});
+
+describe("isInternationalRoute", () => {
+  it("returns false when both origin and destination are domestic", () => {
+    expect(isInternationalRoute("GRU", "CNF")).toBe(false);
+  });
+
+  it("returns true when only the destination is international", () => {
+    expect(isInternationalRoute("GRU", "JFK")).toBe(true);
+  });
+
+  it("returns true when only the origin is international (return leg)", () => {
+    expect(isInternationalRoute("JFK", "GRU")).toBe(true);
+  });
+
+  it("returns true when both origin and destination are international", () => {
+    expect(isInternationalRoute("JFK", "LHR")).toBe(true);
+  });
+
+  it("returns false when both codes are unknown (fail safe, treat as domestic)", () => {
+    expect(isInternationalRoute("ZZZ", "YYY")).toBe(false);
   });
 });
 
