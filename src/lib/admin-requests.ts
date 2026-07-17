@@ -27,6 +27,6 @@ export function filterRequestsForQueue(
     filter.tab === "pending" ? requests.filter((r) => r.status === "pending_admin") : requests;
   const searched = filter.tab === "all" ? scoped.filter((r) => matchesQuery(r, filter.query)) : scoped;
   return [...searched].sort(
-    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
 }
