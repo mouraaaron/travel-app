@@ -65,3 +65,17 @@ export interface DuffelOfferRequestResponse {
 export interface DuffelErrorResponse {
   errors: { title: string; message: string; code: string }[];
 }
+
+export interface DuffelRawPlaceSuggestion {
+  type: "airport" | "city";
+  name: string;
+  iata_code: string | null;
+  city_name?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  airports?: DuffelRawPlaceSuggestion[];
+}
+
+export interface DuffelPlacesResponse {
+  data: DuffelRawPlaceSuggestion[];
+}
