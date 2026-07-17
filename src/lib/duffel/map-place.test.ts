@@ -124,4 +124,47 @@ describe("mapDuffelPlaceSuggestionsToAirportOptions", () => {
   it("returns an empty array for an empty input", () => {
     expect(mapDuffelPlaceSuggestionsToAirportOptions([])).toEqual([]);
   });
+
+  it("dedups by code, keeping the top-level airport occurrence over a nested duplicate", () => {
+    const raw: DuffelRawPlaceSuggestion[] = [
+      {
+        type: "airport",
+        name: "Miami International Airport",
+        iata_code: "MIA",
+        city_name: "Miami",
+        latitude: 25.7959,
+        longitude: -80.287,
+      },
+      {
+        type: "city",
+        name: "Miami Metro",
+        iata_code: null,
+        city_name: "Miami Metro",
+        latitude: 25.8,
+        longitude: -80.3,
+        airports: [
+          {
+            type: "airport",
+            name: "Miami Intl (duplicate nested entry)",
+            iata_code: "MIA",
+            city_name: "Miami Metro",
+            latitude: 25.79,
+            longitude: -80.29,
+          },
+        ],
+      },
+    ];
+
+    const result = mapDuffelPlaceSuggestionsToAirportOptions(raw);
+
+    const miaEntries = result.filter((option) => option.code === "MIA");
+    expect(miaEntries).toHaveLength(1);
+    expect(miaEntries[0]).toEqual({
+      code: "MIA",
+      label: "Miami (MIA)",
+      sublabel: "Miami International Airport",
+      lat: 25.7959,
+      lng: -80.287,
+    });
+  });
 });

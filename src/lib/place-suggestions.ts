@@ -27,12 +27,17 @@ export async function resolvePlaceSuggestions(
 
     if (!response.ok) return searchAirports(query);
 
-    const json = (await response.json()) as { options: AirportOption[] };
+    const json = (await response.json()) as {
+      options: AirportOption[];
+      source?: "remote" | "local";
+    };
     if (!Array.isArray(json.options) || json.options.length === 0) {
       return searchAirports(query);
     }
 
-    cache.set(key, json.options);
+    if (json.source === "remote") {
+      cache.set(key, json.options);
+    }
     return json.options;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {

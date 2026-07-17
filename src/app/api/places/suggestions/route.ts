@@ -28,10 +28,13 @@ export async function GET(request: Request) {
   const remoteOptions = await suggestPlaces(query);
 
   if (!remoteOptions || remoteOptions.length === 0) {
-    return NextResponse.json({ options: searchAirports(query) });
+    return NextResponse.json({ options: searchAirports(query), source: "local" });
   }
 
-  return NextResponse.json({ options: mergeWithLocalFallback(remoteOptions, query) });
+  return NextResponse.json({
+    options: mergeWithLocalFallback(remoteOptions, query),
+    source: "remote",
+  });
 }
 
 function mergeWithLocalFallback(remoteOptions: AirportOption[], query: string): AirportOption[] {

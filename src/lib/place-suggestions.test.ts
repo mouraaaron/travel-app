@@ -27,7 +27,7 @@ describe("resolvePlaceSuggestions", () => {
     ];
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ options: remoteOptions }),
+      json: async () => ({ options: remoteOptions, source: "remote" }),
     }) as unknown as typeof fetch;
 
     const result = await resolvePlaceSuggestions("amsterdam", new AbortController().signal);
@@ -42,13 +42,28 @@ describe("resolvePlaceSuggestions", () => {
     ];
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ options: remoteOptions }),
+      json: async () => ({ options: remoteOptions, source: "remote" }),
     }) as unknown as typeof fetch;
 
     await resolvePlaceSuggestions("Amsterdam", new AbortController().signal);
     await resolvePlaceSuggestions("  amsterdam  ", new AbortController().signal);
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not cache local-fallback responses from the route", async () => {
+    const localOptions = [
+      { code: "GIG", label: "Rio de Janeiro (GIG)", sublabel: "Galeão", lat: -22.8, lng: -43.25 },
+    ];
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ options: localOptions, source: "local" }),
+    }) as unknown as typeof fetch;
+
+    await resolvePlaceSuggestions("rio", new AbortController().signal);
+    await resolvePlaceSuggestions("rio", new AbortController().signal);
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
   });
 
   it("falls back to local searchAirports when the response is not ok", async () => {
