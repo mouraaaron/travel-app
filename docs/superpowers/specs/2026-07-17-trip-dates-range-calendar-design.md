@@ -63,11 +63,25 @@ No new tokens. Reuses the same Tailwind/shadcn CSS variables already used by `ca
 
 ## Testing
 
-- New unit test `src/components/trip/trip-dates-popover.test.tsx` covering:
-  - Range mode: selecting two dates and clicking "Confirmar" calls both onChange callbacks and `onConfirm`.
-  - Range mode: "Confirmar" is enabled with only a departure date selected (one-way case).
-  - Single mode: selecting a date calls `onChange` and closes the popover without a confirm step.
-- No existing test file covers `search-criteria-form.tsx` today, so no existing tests need updating; a new one is not required by this change but could be added if desired during implementation (not required for scope).
+The project has no React component-rendering test infrastructure today: `vitest.config.ts` runs with `environment: "node"`, there is no `@testing-library/react` (or `jsdom`) dependency, and no `.test.tsx` file exists anywhere in the repo — every existing test is plain-logic (`.test.ts`). Adding a rendering-test stack is out of scope (it would be a new dependency, the exact thing this design avoids elsewhere). Instead, the parts of `trip-dates-popover.tsx` worth testing are extracted into a plain, dependency-free helper module:
+
+`src/components/trip/trip-dates-popover-utils.ts` exporting:
+- `formatTripDateLabel(date: string | undefined, mode: "range" | "single", returnDate?: string): string` — the trigger button label logic (`"17 jul — 24 jul"`, `"17 jul"`, or a placeholder).
+- `isConfirmEnabled(departureDate: string | undefined): boolean` — the "Confirmar" enable rule (true once a departure date exists; return date is never required).
+
+New unit test `src/components/trip/trip-dates-popover-utils.test.ts` (plain vitest, no rendering) covering:
+  - `formatTripDateLabel` with both dates, with only a departure date (one-way), and with none (placeholder).
+  - `isConfirmEnabled` returns `true` with only a departure date, `false` with none.
+
+`trip-dates-popover.tsx` itself (the Popover/Calendar wiring) is not covered by an automated test, consistent with the rest of the codebase having no component-render tests; it should be verified manually in the browser (see Manual verification below).
+- No existing test file covers `search-criteria-form.tsx` today, so no existing tests need updating.
+
+## Manual verification
+
+Since this is a UI-only change with no component-render test infra, run the dev server and manually check in the browser after implementation:
+- Round trip: open the popover, select a start and end date, confirm "Confirmar" stays disabled until both are picked, click it, verify the trigger button shows both dates and the form submits the right `departure_date`/`returnDate`.
+- Só ida: open the popover, click one date, verify "Confirmar" is already enabled, click it, verify no return date is sent.
+- Multi-cidade: verify each leg's popover is single-date, closes immediately on click, and the next leg's minimum date follows the previous leg's departure.
 
 ## Out of scope
 
