@@ -137,7 +137,11 @@ export function FlightPathMap({ flights }: { flights: InCourseFlight[] }) {
                 );
                 const staticPlanePoint = bezierPointAt(progress, start, control, end);
                 const color = FLIGHT_COLOR[flight.status];
-                const isIntl = isInternationalRoute(flight.origin.code, flight.destination.code);
+                // Plane icon is reserved for in-course international flights only —
+                // completed flights (any route) keep the plain chevron.
+                const showPlaneIcon =
+                  isInternationalRoute(flight.origin.code, flight.destination.code) &&
+                  flight.status === "in_course";
 
                 return (
                   <g key={flight.id}>
@@ -190,7 +194,7 @@ export function FlightPathMap({ flights }: { flights: InCourseFlight[] }) {
                           {/* Small chevron drawn pointing along +x; SMIL's rotate="auto"
                               (or the static transform above, under reduced motion) orients
                               it along the curve's direction of travel. */}
-                          {isIntl ? (
+                          {showPlaneIcon ? (
                             <path
                               d={PLANE_ICON_PATH}
                               fill={color}
