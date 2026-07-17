@@ -12,6 +12,8 @@ import {
   bezierPointAt,
   curvedPath,
   curveControlPoint,
+  FLIGHT_MAP_PROJECTION,
+  FLIGHT_MAP_REGION,
   flightProgress,
   flightTimingSeconds,
   projectPoint,
@@ -33,17 +35,15 @@ const FLIGHT_COLOR: Record<InCourseFlight["status"], string> = {
 };
 
 function generateDottedMapSvg(): string {
-  // Must match `projectPoint`'s linear equirectangular math exactly (see
-  // flight-map-geometry.ts): dotted-map defaults to a Mercator projection
-  // cropped to lat [-56, 71], which places its dots at different pixel
-  // positions than our flight paths' lat/lng math expects, making routes
-  // land in the ocean. Forcing the same projection and the full lat/lng
-  // range keeps the two coordinate systems in agreement.
+  // Projection/region must match `projectPoint`'s linear equirectangular
+  // math (see flight-map-geometry.ts) or dotted-map's default Mercator
+  // projection (cropped to lat [-56, 71]) makes flight routes land in the
+  // ocean — see FLIGHT_MAP_PROJECTION's doc comment for the full story.
   const map = new DottedMap({
     height: 100,
     grid: "diagonal",
-    projection: { name: "equirectangular" },
-    region: { lat: { min: -90, max: 90 }, lng: { min: -180, max: 180 } },
+    projection: FLIGHT_MAP_PROJECTION,
+    region: FLIGHT_MAP_REGION,
   });
   return map.getSVG({
     radius: 0.22,
