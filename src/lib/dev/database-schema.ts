@@ -31,6 +31,8 @@ export interface SchemaEdge {
   targetColumn: string;
   label: string;
   dashed?: boolean;
+  /** 1-pra-1 (default é 1-pra-N, com o lado "muitos" em `source`). */
+  oneToOne?: boolean;
 }
 
 export const schemaTables: SchemaTable[] = [
@@ -225,6 +227,7 @@ export const schemaEdges: SchemaEdge[] = [
     targetColumn: "id",
     label: "extends",
     dashed: true,
+    oneToOne: true,
   },
   {
     id: "onsite_weeks-organizations",

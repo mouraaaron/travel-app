@@ -19,6 +19,23 @@ const positions: Record<string, { x: number; y: number }> = {
   "auth.users": { x: 1150, y: 600 },
 };
 
+const MARKER_STROKE = { stroke: "hsl(var(--muted-foreground))", strokeWidth: 1.5 };
+
+function CrowFootMarkerDefs() {
+  return (
+    <svg width={0} height={0} style={{ position: "absolute" }} aria-hidden="true">
+      <defs>
+        <marker id="crowfoot-one" viewBox="0 0 12 12" refX={10} refY={6} markerWidth={12} markerHeight={12} orient="auto">
+          <path d="M 10 1 L 10 11" style={MARKER_STROKE} fill="none" />
+        </marker>
+        <marker id="crowfoot-many" viewBox="0 0 12 12" refX={0} refY={6} markerWidth={14} markerHeight={14} orient="auto">
+          <path d="M 0 6 L 12 0 M 0 6 L 12 6 M 0 6 L 12 12" style={MARKER_STROKE} fill="none" />
+        </marker>
+      </defs>
+    </svg>
+  );
+}
+
 export default function DatabaseSchemaPage() {
   const nodes = useMemo<TableNodeType[]>(
     () =>
@@ -42,6 +59,8 @@ export default function DatabaseSchemaPage() {
         type: "smoothstep",
         pathOptions: { borderRadius: 0 },
         animated: false,
+        markerStart: edge.oneToOne ? "crowfoot-one" : "crowfoot-many",
+        markerEnd: "crowfoot-one",
         style: {
           stroke: "hsl(var(--muted-foreground))",
           strokeWidth: 1,
@@ -54,6 +73,7 @@ export default function DatabaseSchemaPage() {
 
   return (
     <div className="h-screen w-screen bg-background">
+      <CrowFootMarkerDefs />
       <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} fitView minZoom={0.3}>
         <Background />
         <MiniMap zoomable pannable />
