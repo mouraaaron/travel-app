@@ -27,7 +27,10 @@ export interface InCourseFlight {
   status: "in_course" | "completed";
 }
 
-const LINE_COLOR = "#0ea5e9";
+const FLIGHT_COLOR: Record<InCourseFlight["status"], string> = {
+  in_course: "#0ea5e9",
+  completed: "#94a3b8",
+};
 
 function generateDottedMapSvg(): string {
   const map = new DottedMap({ height: 100, grid: "diagonal" });
@@ -74,12 +77,21 @@ export function FlightPathMap({ flights }: { flights: InCourseFlight[] }) {
             />
             <svg viewBox="0 0 800 400" className="absolute inset-0 h-full w-full">
               <defs>
-                <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="white" stopOpacity="0" />
-                  <stop offset="5%" stopColor={LINE_COLOR} stopOpacity="1" />
-                  <stop offset="95%" stopColor={LINE_COLOR} stopOpacity="1" />
-                  <stop offset="100%" stopColor="white" stopOpacity="0" />
-                </linearGradient>
+                {(["in_course", "completed"] as const).map((status) => (
+                  <linearGradient
+                    key={status}
+                    id={`${gradientId}-${status}`}
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="0%"
+                  >
+                    <stop offset="0%" stopColor="white" stopOpacity="0" />
+                    <stop offset="5%" stopColor={FLIGHT_COLOR[status]} stopOpacity="1" />
+                    <stop offset="95%" stopColor={FLIGHT_COLOR[status]} stopOpacity="1" />
+                    <stop offset="100%" stopColor="white" stopOpacity="0" />
+                  </linearGradient>
+                ))}
               </defs>
               {now && flights.map((flight, index) => {
                 const start = projectPoint(flight.origin.lat, flight.origin.lng);
@@ -93,13 +105,14 @@ export function FlightPathMap({ flights }: { flights: InCourseFlight[] }) {
                   now
                 );
                 const staticPlanePoint = bezierPointAt(progress, start, control, end);
+                const color = FLIGHT_COLOR[flight.status];
 
                 return (
                   <g key={flight.id}>
                     <motion.path
                       d={path}
                       fill="none"
-                      stroke={`url(#${gradientId})`}
+                      stroke={`url(#${gradientId}-${flight.status})`}
                       strokeWidth={1}
                       initial={shouldReduceMotion ? false : { pathLength: 0 }}
                       animate={{ pathLength: 1 }}
@@ -107,8 +120,8 @@ export function FlightPathMap({ flights }: { flights: InCourseFlight[] }) {
                     />
                     {[start, end].map((point, endpointIndex) => (
                       <g key={endpointIndex}>
-                        <circle cx={point.x} cy={point.y} r={2} fill={LINE_COLOR} />
-                        <circle cx={point.x} cy={point.y} r={2} fill={LINE_COLOR} opacity={0.5}>
+                        <circle cx={point.x} cy={point.y} r={2} fill={color} />
+                        <circle cx={point.x} cy={point.y} r={2} fill={color} opacity={0.5}>
                           {!shouldReduceMotion && (
                             <>
                               <animate
@@ -145,7 +158,7 @@ export function FlightPathMap({ flights }: { flights: InCourseFlight[] }) {
                           {/* Small chevron drawn pointing along +x; SMIL's rotate="auto"
                               (or the static transform above, under reduced motion) orients
                               it along the curve's direction of travel. */}
-                          <polygon points="-4,-2.5 4,0 -4,2.5 -2,0" fill={LINE_COLOR}>
+                          <polygon points="-4,-2.5 4,0 -4,2.5 -2,0" fill={color}>
                             {!shouldReduceMotion && (
                               <animateMotion
                                 path={path}
@@ -165,6 +178,9 @@ export function FlightPathMap({ flights }: { flights: InCourseFlight[] }) {
                         </p>
                         <p>Partida: {formatDateTime(flight.departureAt)}</p>
                         <p>Chegada: {formatDateTime(flight.arrivalAt)}</p>
+                        {flight.status === "completed" && (
+                          <p className="text-muted-foreground">Concluído</p>
+                        )}
                       </TooltipContent>
                     </Tooltip>
                   </g>
