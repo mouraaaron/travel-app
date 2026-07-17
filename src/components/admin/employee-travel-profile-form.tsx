@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CityAirportCombobox } from "@/components/trip/city-airport-combobox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { PassengerGender, PassengerTitle } from "@/lib/types";
 import type { TravelProfileFields } from "@/lib/onsite-weeks";
@@ -66,12 +65,17 @@ export function EmployeeTravelProfileForm({ employeeId, profile }: EmployeeTrave
         Necessário para incluir este funcionário numa Semana Presencial.
       </p>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <CityAirportCombobox
-          value={values.origin_airport_code}
-          onChange={(code) => setValues((v) => ({ ...v, origin_airport_code: code }))}
-          label="Cidade de origem"
-          placeholder="Ex: São Paulo (GRU)"
-        />
+        <div className="flex flex-col gap-1.5">
+          <Label>Aeroporto de origem (IATA)</Label>
+          <Input
+            value={values.origin_airport_code}
+            maxLength={3}
+            placeholder="Ex: GRU"
+            onChange={(e) =>
+              setValues((v) => ({ ...v, origin_airport_code: e.target.value.toUpperCase() }))
+            }
+          />
+        </div>
         <div className="flex flex-col gap-1.5">
           <Label>Telefone</Label>
           <Input
