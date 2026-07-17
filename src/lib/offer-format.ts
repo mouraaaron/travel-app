@@ -1,10 +1,4 @@
-import type { Offer, OfferSegment } from "./types";
-
-export function offerTitle(offer: Offer): string {
-  return offer.mode === "flight"
-    ? `${offer.airline} · ${offer.origin} → ${offer.destination}`
-    : `${offer.hotelName} · ${offer.city}`;
-}
+import type { OfferSegment } from "./types";
 
 export function formatCurrency(amount: number, currency: string): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(amount);

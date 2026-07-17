@@ -1,45 +1,5 @@
 import { isInternational } from "./airports";
-import type { FlightOffer, OfferSegment, OfferSlice, Policy, SearchCriteria, StayOffer } from "./types";
-
-export const ORGANIZATION_POLICY: Policy = {
-  id: "policy-org-default",
-  scope: "organization",
-  name: "Política padrão da organização",
-  rules: [
-    {
-      id: "rule-flight-cabin",
-      field: "cabinClass",
-      operator: "in",
-      value: ["economy", "premium_economy"],
-      appliesTo: "flight",
-      description: "Classe econômica ou premium economy",
-    },
-    {
-      id: "rule-flight-price",
-      field: "totalAmount",
-      operator: "lte",
-      value: 3000,
-      appliesTo: "flight",
-      description: "Até R$ 3.000 por passagem",
-    },
-    {
-      id: "rule-stay-stars",
-      field: "starRating",
-      operator: "lte",
-      value: 4,
-      appliesTo: "stay",
-      description: "Até 4 estrelas",
-    },
-    {
-      id: "rule-stay-price",
-      field: "totalAmount",
-      operator: "lte",
-      value: 1200,
-      appliesTo: "stay",
-      description: "Até R$ 1.200 na diária total",
-    },
-  ],
-};
+import type { FlightOffer, OfferSegment, OfferSlice, SearchCriteria } from "./types";
 
 export const MOCK_FLIGHT_OFFERS: FlightOffer[] = [
   {
@@ -133,63 +93,6 @@ export const MOCK_FLIGHT_OFFERS: FlightOffer[] = [
     currency: "BRL",
   },
 ];
-
-export const MOCK_STAY_OFFERS: StayOffer[] = [
-  {
-    id: "sty-1",
-    mode: "stay",
-    city: "São Paulo",
-    country: "BR",
-    checkIn: "2026-08-10",
-    checkOut: "2026-08-13",
-    hotelName: "Ibis Budget Paulista",
-    starRating: 2,
-    refundable: true,
-    totalAmount: 480,
-    currency: "BRL",
-  },
-  {
-    id: "sty-2",
-    mode: "stay",
-    city: "Nova York",
-    country: "US",
-    checkIn: "2026-08-10",
-    checkOut: "2026-08-17",
-    hotelName: "The Plaza",
-    starRating: 5,
-    refundable: false,
-    totalAmount: 7200,
-    currency: "BRL",
-  },
-  {
-    id: "sty-3",
-    mode: "stay",
-    city: "Rio de Janeiro",
-    country: "BR",
-    checkIn: "2026-08-05",
-    checkOut: "2026-08-06",
-    hotelName: "Windsor Atlântica",
-    starRating: 4,
-    refundable: true,
-    totalAmount: 980,
-    currency: "BRL",
-  },
-  {
-    id: "sty-4",
-    mode: "stay",
-    city: "Lisboa",
-    country: "PT",
-    checkIn: "2026-09-02",
-    checkOut: "2026-09-12",
-    hotelName: "Hotel Avenida Palace",
-    starRating: 5,
-    refundable: false,
-    totalAmount: 2100,
-    currency: "BRL",
-  },
-];
-
-export const MOCK_OFFERS = [...MOCK_FLIGHT_OFFERS, ...MOCK_STAY_OFFERS];
 
 interface Carrier {
   iata_code: string;
