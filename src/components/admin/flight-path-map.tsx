@@ -18,6 +18,7 @@ import {
   flightTimingSeconds,
   projectPoint,
 } from "@/lib/flight-map-geometry";
+import { isInternationalRoute } from "@/lib/airports";
 
 export interface InCourseFlight {
   id: string;
@@ -33,6 +34,25 @@ const FLIGHT_COLOR: Record<InCourseFlight["status"], string> = {
   in_course: "#0ea5e9",
   completed: "#94a3b8",
 };
+
+// Path copied from node_modules/lucide-react/dist/esm/icons/plane.mjs — viewBox 24x24.
+// Copied as a raw string (not imported as a React component) so it can be driven
+// by SMIL <animateMotion> directly inside the map's <svg>.
+const PLANE_ICON_PATH =
+  "M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z";
+
+// Lucide's Plane glyph is authored pointing toward the upper-right at rest, not
+// along +x. animateMotion's rotate="auto" already orients the element along the
+// curve's tangent assuming a resting orientation of "pointing along +x" (that's
+// why the domestic chevron below is drawn pointing along +x with no rotation
+// offset). This constant corrects the mismatch; tune it in Step 5's manual check
+// if the nose doesn't visibly point along the direction of travel.
+const PLANE_ICON_ROTATION_OFFSET_DEG = -45;
+
+// Scales the 24x24 lucide glyph down into the map's 800x400 unit space, landing
+// at roughly the same visual weight as an international curve can support
+// (~14 units wide). Tune in Step 5's manual check together with the rotation offset.
+const PLANE_ICON_SCALE = 0.6;
 
 function generateDottedMapSvg(): string {
   // Projection/region must match `projectPoint`'s linear equirectangular
@@ -117,6 +137,7 @@ export function FlightPathMap({ flights }: { flights: InCourseFlight[] }) {
                 );
                 const staticPlanePoint = bezierPointAt(progress, start, control, end);
                 const color = FLIGHT_COLOR[flight.status];
+                const isIntl = isInternationalRoute(flight.origin.code, flight.destination.code);
 
                 return (
                   <g key={flight.id}>
@@ -169,17 +190,35 @@ export function FlightPathMap({ flights }: { flights: InCourseFlight[] }) {
                           {/* Small chevron drawn pointing along +x; SMIL's rotate="auto"
                               (or the static transform above, under reduced motion) orients
                               it along the curve's direction of travel. */}
-                          <polygon points="-4,-2.5 4,0 -4,2.5 -2,0" fill={color}>
-                            {!shouldReduceMotion && (
-                              <animateMotion
-                                path={path}
-                                dur={`${durationSeconds}s`}
-                                begin={`${beginOffsetSeconds}s`}
-                                fill="freeze"
-                                rotate="auto"
-                              />
-                            )}
-                          </polygon>
+                          {isIntl ? (
+                            <path
+                              d={PLANE_ICON_PATH}
+                              fill={color}
+                              transform={`scale(${PLANE_ICON_SCALE}) rotate(${PLANE_ICON_ROTATION_OFFSET_DEG}) translate(-12, -12)`}
+                            >
+                              {!shouldReduceMotion && (
+                                <animateMotion
+                                  path={path}
+                                  dur={`${durationSeconds}s`}
+                                  begin={`${beginOffsetSeconds}s`}
+                                  fill="freeze"
+                                  rotate="auto"
+                                />
+                              )}
+                            </path>
+                          ) : (
+                            <polygon points="-4,-2.5 4,0 -4,2.5 -2,0" fill={color}>
+                              {!shouldReduceMotion && (
+                                <animateMotion
+                                  path={path}
+                                  dur={`${durationSeconds}s`}
+                                  begin={`${beginOffsetSeconds}s`}
+                                  fill="freeze"
+                                  rotate="auto"
+                                />
+                              )}
+                            </polygon>
+                          )}
                         </g>
                       </TooltipTrigger>
                       <TooltipContent>
