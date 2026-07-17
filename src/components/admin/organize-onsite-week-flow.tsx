@@ -7,14 +7,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TripDatesPopover } from "@/components/trip/trip-dates-popover";
+import { parseFormDate } from "@/components/trip/trip-dates-popover-utils";
 import { SECTOR_LABELS, SECTORS, type Sector } from "@/lib/badge-variants";
 import type { OnsiteWeekPreviewEmployee } from "@/lib/onsite-weeks";
 
 type Step = "form" | "review";
+
+const TODAY = new Date().toISOString().slice(0, 10);
 
 function formatDateBR(iso: string): string {
   const [year, month, day] = iso.split("-");
@@ -129,15 +132,17 @@ export function OrganizeOnsiteWeekFlow() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1.5">
-                <Label>Data de ida</Label>
-                <Input type="date" value={weekStartDate} onChange={(e) => setWeekStartDate(e.target.value)} />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label>Data de volta</Label>
-                <Input type="date" value={weekEndDate} onChange={(e) => setWeekEndDate(e.target.value)} />
-              </div>
+            <div className="flex flex-col gap-1.5">
+              <Label>Ida e volta</Label>
+              <TripDatesPopover
+                mode="range"
+                departureDate={weekStartDate}
+                returnDate={weekEndDate || undefined}
+                onChangeDeparture={setWeekStartDate}
+                onChangeReturn={(value) => setWeekEndDate(value ?? "")}
+                minDate={parseFormDate(TODAY)}
+                allowRange
+              />
             </div>
             <Button loading={loadingPreview} onClick={handlePreview} className="w-fit">
               Avançar
