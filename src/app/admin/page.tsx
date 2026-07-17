@@ -21,7 +21,7 @@ import {
   TripPurposeChart,
 } from "@/components/admin/spend-breakdown-charts";
 import { EmptyState } from "@/components/ui/empty-state";
-import { inCourseFlights } from "@/lib/in-course-flights";
+import { selectFlightsForMap } from "@/lib/flight-map-selection";
 import { FlightPathMap } from "@/components/admin/flight-path-map";
 
 export default async function AdminDashboardPage() {
@@ -51,7 +51,7 @@ export default async function AdminDashboardPage() {
   const sectorVolume = requestVolumeBySector(requests);
   const tripPurpose = tripPurposeBreakdown(requests);
   const avgOnsiteWeekCost = avgOnsiteWeekCostBySector(requests);
-  const flights = inCourseFlights(requests);
+  const flights = selectFlightsForMap(requests);
 
   return (
     <div className="flex flex-col gap-6">

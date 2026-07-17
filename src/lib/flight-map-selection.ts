@@ -72,7 +72,7 @@ function dedupeByRoute(
     }
   }
 
-  return [...latestByRoute.values()].sort((a, b) => b.arrivalMs - a.arrivalMs);
+  return Array.from(latestByRoute.values()).sort((a, b) => b.arrivalMs - a.arrivalMs);
 }
 
 export function selectFlightsForMap(
