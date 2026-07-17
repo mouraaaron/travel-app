@@ -1,9 +1,12 @@
+import type { AirportOption } from "../airports";
 import type { FlightOffer, SearchCriteria } from "../types";
 import { getRateToBRL } from "../currency/exchange-rate";
 import { mapDuffelOfferToFlightOffer } from "./map-offer";
-import type { DuffelErrorResponse, DuffelOfferRequestResponse } from "./types";
+import { mapDuffelPlaceSuggestionsToAirportOptions } from "./map-place";
+import type { DuffelErrorResponse, DuffelOfferRequestResponse, DuffelPlacesResponse } from "./types";
 
 const DUFFEL_API_BASE = "https://api.duffel.com";
+const PLACES_FETCH_TIMEOUT_MS = 2500;
 
 export class DuffelSearchError extends Error {}
 
@@ -51,4 +54,35 @@ export async function searchFlights(criteria: SearchCriteria): Promise<FlightOff
   return json.data.offers.map((offer) =>
     mapDuffelOfferToFlightOffer(offer, criteria, rates.get(offer.total_currency) ?? 1)
   );
+}
+
+export async function suggestPlaces(query: string): Promise<AirportOption[] | null> {
+  const apiKey = process.env.DUFFEL_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), PLACES_FETCH_TIMEOUT_MS);
+
+    const response = await fetch(
+      `${DUFFEL_API_BASE}/places/suggestions?query=${encodeURIComponent(query)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Duffel-Version": "v2",
+          Accept: "application/json",
+        },
+        signal: controller.signal,
+        cache: "no-store",
+      }
+    );
+    clearTimeout(timeout);
+
+    if (!response.ok) return null;
+
+    const json = (await response.json()) as DuffelPlacesResponse;
+    return mapDuffelPlaceSuggestionsToAirportOptions(json.data);
+  } catch {
+    return null;
+  }
 }
