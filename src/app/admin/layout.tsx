@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AuthenticatedShell } from "@/components/layout/authenticated-shell";
 import { getCurrentProfile } from "@/lib/session";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -12,11 +12,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <>
-      <AppSidebar fullName={profile.fullName} role="admin" />
-      <main className="min-h-screen lg:pl-[248px]">
-        <div className="px-6 pb-16 pt-8">{children}</div>
-      </main>
-    </>
+    <AuthenticatedShell fullName={profile.fullName} role="admin">
+      {children}
+    </AuthenticatedShell>
   );
 }
