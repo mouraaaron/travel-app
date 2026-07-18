@@ -10,6 +10,6 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    exclude: [...configDefaults.exclude, "**/.worktrees/**", "**/.claude/worktrees/**", "**/.next/**"],
+    exclude: [...configDefaults.exclude, "**/.worktrees/**", "**/.claude/worktrees/**", "**/.next/**", "e2e/**"],
   },
 });
