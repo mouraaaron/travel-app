@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getOnsiteWeekStatusBadge, getSectorBadge, SECTOR_LABELS } from "@/lib/badge-variants";
+import { getOnsiteWeekStatusBadge, getSectorBadge } from "@/lib/badge-variants";
 import { formatDate } from "@/lib/offer-format";
 import type { OnsiteWeek } from "@/lib/onsite-weeks";
 
@@ -52,7 +52,7 @@ export function OnsiteWeeksList({ onsiteWeeks }: { onsiteWeeks: OnsiteWeek[] }) 
                   onClick={() => router.push(`/admin/onsite-weeks/${week.id}`)}
                 >
                   <TableCell>
-                    <Badge variant={sectorBadge.variant}>{SECTOR_LABELS[week.sector]}</Badge>
+                    <Badge variant={sectorBadge.variant}>{sectorBadge.label}</Badge>
                   </TableCell>
                   <TableCell className="text-foreground">
                     {formatDate(week.week_start_date)} – {formatDate(week.week_end_date)}

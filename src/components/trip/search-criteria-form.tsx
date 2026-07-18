@@ -37,7 +37,7 @@ const DEFAULT_VALUES: TripSearchFormValues = {
   departAfterReturnTime: "",
 };
 
-function Stepper({
+function CounterStepper({
   label,
   value,
   min,
@@ -95,6 +95,7 @@ export function SearchCriteriaForm() {
   const adults = form.watch("adults");
   const children = form.watch("children");
   const infants = form.watch("infants");
+  const totalPassengers = adults + children + infants;
   const arriveByOutboundEnabled = form.watch("arriveByOutboundEnabled");
   const departAfterReturnEnabled = form.watch("departAfterReturnEnabled");
 
@@ -256,23 +257,25 @@ export function SearchCriteriaForm() {
               ) : null}
 
               <div className="flex flex-col gap-2">
-                <Stepper
+                <CounterStepper
                   label="Passageiros"
-                  value={adults + children + infants}
+                  value={totalPassengers}
                   min={1}
-                  onChange={(next) => form.setValue("adults", Math.max(1, adults + (next - (adults + children + infants))))}
+                  onChange={(next) =>
+                    form.setValue("adults", Math.max(1, next > totalPassengers ? adults + 1 : adults - 1))
+                  }
                 />
                 <details className="text-sm">
                   <summary className="cursor-pointer text-primary">Detalhar tipos</summary>
                   <div className="mt-3 flex flex-col gap-2">
-                    <Stepper label="Adultos" value={adults} min={1} onChange={(v) => form.setValue("adults", v)} />
-                    <Stepper
+                    <CounterStepper label="Adultos" value={adults} min={1} onChange={(v) => form.setValue("adults", v)} />
+                    <CounterStepper
                       label="Crianças (2–11)"
                       value={children}
                       min={0}
                       onChange={(v) => form.setValue("children", v)}
                     />
-                    <Stepper
+                    <CounterStepper
                       label="Bebês (colo)"
                       value={infants}
                       min={0}

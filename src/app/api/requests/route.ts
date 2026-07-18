@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireApiUser } from "@/lib/api-auth";
 import { toTravelRequest } from "@/lib/requests-mapper";
 
 const requestCreateSchema = z.object({
@@ -54,13 +54,9 @@ const requestCreateSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  }
+  const auth = await requireApiUser();
+  if (auth.response) return auth.response;
+  const { supabase, user } = auth;
 
   const { data: profile } = await supabase
     .from("profiles")

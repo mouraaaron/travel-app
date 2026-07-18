@@ -1,29 +1,13 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireApiAdmin } from "@/lib/api-auth";
 import type { EmployeeStatus } from "@/lib/badge-variants";
 
 const VALID_STATUSES: EmployeeStatus[] = ["active", "inactive"];
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  }
-
-  const { data: adminProfile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (!adminProfile || adminProfile.role !== "admin") {
-    return NextResponse.json(
-      { error: "Apenas administradores podem ativar ou desativar um funcionário." },
-      { status: 403 }
-    );
-  }
+  const auth = await requireApiAdmin("Apenas administradores podem ativar ou desativar um funcionário.");
+  if (auth.response) return auth.response;
+  const { supabase, user } = auth;
 
   if (params.id === user.id) {
     return NextResponse.json(

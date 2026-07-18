@@ -43,7 +43,10 @@ export async function searchFlights(criteria: SearchCriteria): Promise<FlightOff
     throw new DuffelSearchError(message);
   }
 
-  const json = (await response.json()) as DuffelOfferRequestResponse;
+  const json = (await response.json().catch(() => null)) as DuffelOfferRequestResponse | null;
+  if (!json?.data?.offers) {
+    throw new DuffelSearchError("Resposta inválida da Duffel.");
+  }
 
   const currencies = Array.from(new Set(json.data.offers.map((offer) => offer.total_currency)));
   const rates = new Map<string, number>();

@@ -1,32 +1,19 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireApiAdmin } from "@/lib/api-auth";
 import { buildOnsiteWeekPreviewEmployee } from "@/lib/onsite-weeks";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const previewSchema = z.object({
   sector: z.enum(["product", "marketing", "engineering", "founders"]),
 });
 
 export async function POST(request: Request) {
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  }
-
-  const { data: adminProfile } = await supabase
-    .from("profiles")
-    .select("role, organization_id")
-    .eq("id", user.id)
-    .single();
-  if (!adminProfile || adminProfile.role !== "admin") {
-    return NextResponse.json(
-      { error: "Apenas administradores podem organizar semanas presenciais." },
-      { status: 403 }
-    );
-  }
+  const auth = await requireApiAdmin(
+    "Apenas administradores podem organizar semanas presenciais.",
+    "role, organization_id"
+  );
+  if (auth.response) return auth.response;
+  const { supabase, adminProfile } = auth;
 
   const body = await request.json().catch(() => null);
   const parsed = previewSchema.safeParse(body);

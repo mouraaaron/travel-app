@@ -1,28 +1,15 @@
 import { NextResponse } from "next/server";
+import { requireApiAdmin } from "@/lib/api-auth";
 import type { OnsiteWeek } from "@/lib/onsite-weeks";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { TravelRequestEvent } from "@/lib/types";
 
 export async function POST(_request: Request, { params }: { params: { id: string } }) {
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  }
-
-  const { data: adminProfile } = await supabase
-    .from("profiles")
-    .select("role, organization_id")
-    .eq("id", user.id)
-    .single();
-  if (!adminProfile || adminProfile.role !== "admin") {
-    return NextResponse.json(
-      { error: "Apenas administradores podem cancelar uma semana presencial." },
-      { status: 403 }
-    );
-  }
+  const auth = await requireApiAdmin(
+    "Apenas administradores podem cancelar uma semana presencial.",
+    "role, organization_id"
+  );
+  if (auth.response) return auth.response;
+  const { supabase, user, adminProfile } = auth;
 
   const { data: week } = await supabase
     .from("onsite_weeks")

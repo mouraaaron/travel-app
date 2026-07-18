@@ -37,7 +37,7 @@ export function EmployeeDetail({ employeeId, employeeName, requests }: EmployeeD
       </TabsContent>
 
       <TabsContent value="spend">
-        <SpendChart data={monthly} title="Gasto mensal" description={employeeName} />
+        <SpendChart data={monthly} description={employeeName} />
       </TabsContent>
 
       <TabsContent value="violations">

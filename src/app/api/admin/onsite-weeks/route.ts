@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { DUFFEL_POLICY_DEFAULTS } from "@/lib/policy";
-import { toDuffelPolicyDefaults, type PolicyRuleRow } from "@/lib/policy-rules";
+import { requireApiAdmin } from "@/lib/api-auth";
+import { getPolicyDefaults } from "@/lib/policy-rules";
 import { deriveOnsiteWeekStatus, type OnsiteWeek, type TravelProfileFields } from "@/lib/onsite-weeks";
 import { processOnsiteWeekEmployee, type ProcessEmployeeParams } from "@/lib/onsite-weeks-service";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const createSchema = z.object({
   sector: z.enum(["product", "marketing", "engineering", "founders"]),
@@ -14,25 +13,12 @@ const createSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  }
-
-  const { data: adminProfile } = await supabase
-    .from("profiles")
-    .select("role, organization_id")
-    .eq("id", user.id)
-    .single();
-  if (!adminProfile || adminProfile.role !== "admin") {
-    return NextResponse.json(
-      { error: "Apenas administradores podem organizar semanas presenciais." },
-      { status: 403 }
-    );
-  }
+  const auth = await requireApiAdmin(
+    "Apenas administradores podem organizar semanas presenciais.",
+    "role, organization_id"
+  );
+  if (auth.response) return auth.response;
+  const { supabase, user, adminProfile } = auth;
 
   const body = await request.json().catch(() => null);
   const parsed = createSchema.safeParse(body);
@@ -97,13 +83,7 @@ export async function POST(request: Request) {
     .eq("status", "active")
     .in("id", employee_ids);
 
-  const { data: ruleRow } = await supabase
-    .from("policy_rules")
-    .select("*")
-    .eq("organization_id", adminProfile.organization_id)
-    .eq("sector", sector)
-    .single();
-  const policyDefaults = ruleRow ? toDuffelPolicyDefaults(ruleRow as PolicyRuleRow) : DUFFEL_POLICY_DEFAULTS;
+  const policyDefaults = await getPolicyDefaults(supabase, adminProfile.organization_id, sector);
 
   const outcomes = await Promise.all(
     (employeeRows ?? []).map((employee) =>

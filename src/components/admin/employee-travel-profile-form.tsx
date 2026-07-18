@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CityAirportCombobox } from "@/components/trip/city-airport-combobox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { mutateWithToast } from "@/lib/client-mutation";
 import type { PassengerGender, PassengerTitle } from "@/lib/types";
 import type { TravelProfileFields } from "@/lib/onsite-weeks";
 
@@ -39,24 +39,17 @@ export function EmployeeTravelProfileForm({ employeeId, profile }: EmployeeTrave
 
   async function handleSave() {
     setSaving(true);
-    try {
-      const response = await fetch(`/api/admin/employees/${employeeId}/travel-profile`, {
+    const { ok } = await mutateWithToast(
+      `/api/admin/employees/${employeeId}/travel-profile`,
+      {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
-      });
-      const body = await response.json().catch(() => null);
-      if (!response.ok) {
-        toast.error(body?.error ?? "Não foi possível salvar o perfil de viagem.");
-        return;
-      }
-      toast.success("Perfil de viagem atualizado.");
-      router.refresh();
-    } catch {
-      toast.error("Não foi possível salvar o perfil de viagem.");
-    } finally {
-      setSaving(false);
-    }
+      },
+      { success: "Perfil de viagem atualizado.", error: "Não foi possível salvar o perfil de viagem." }
+    );
+    if (ok) router.refresh();
+    setSaving(false);
   }
 
   return (

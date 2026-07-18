@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -13,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { SECTOR_LABELS, SECTORS, type EmployeeRole, type EmployeeStatus, type Sector } from "@/lib/badge-variants";
+import { mutateWithToast } from "@/lib/client-mutation";
 
 interface EmployeeActionsProps {
   employeeId: string;
@@ -30,69 +30,51 @@ export function EmployeeActions({ employeeId, role, status, costCenter, isSelf }
 
   async function handleRoleChange(nextRole: EmployeeRole) {
     setSavingRole(true);
-    try {
-      const response = await fetch(`/api/admin/employees/${employeeId}/role`, {
+    const { ok } = await mutateWithToast(
+      `/api/admin/employees/${employeeId}/role`,
+      {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: nextRole }),
-      });
-      const body = await response.json().catch(() => null);
-      if (!response.ok) {
-        toast.error(body?.error ?? "Não foi possível alterar a função.");
-        return;
-      }
-      toast.success("Função atualizada.");
-      router.refresh();
-    } catch {
-      toast.error("Não foi possível alterar a função.");
-    } finally {
-      setSavingRole(false);
-    }
+      },
+      { success: "Função atualizada.", error: "Não foi possível alterar a função." }
+    );
+    if (ok) router.refresh();
+    setSavingRole(false);
   }
 
   async function handleStatusToggle(checked: boolean) {
     const nextStatus: EmployeeStatus = checked ? "active" : "inactive";
     setSavingStatus(true);
-    try {
-      const response = await fetch(`/api/admin/employees/${employeeId}/status`, {
+    const { ok } = await mutateWithToast(
+      `/api/admin/employees/${employeeId}/status`,
+      {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),
-      });
-      const body = await response.json().catch(() => null);
-      if (!response.ok) {
-        toast.error(body?.error ?? "Não foi possível alterar o status.");
-        return;
+      },
+      {
+        success: nextStatus === "active" ? "Acesso ativado." : "Acesso desativado.",
+        error: "Não foi possível alterar o status.",
       }
-      toast.success(nextStatus === "active" ? "Acesso ativado." : "Acesso desativado.");
-      router.refresh();
-    } catch {
-      toast.error("Não foi possível alterar o status.");
-    } finally {
-      setSavingStatus(false);
-    }
+    );
+    if (ok) router.refresh();
+    setSavingStatus(false);
   }
 
   async function handleSectorChange(nextSector: Sector) {
     setSavingSector(true);
-    try {
-      const response = await fetch(`/api/admin/employees/${employeeId}/cost-center`, {
+    const { ok } = await mutateWithToast(
+      `/api/admin/employees/${employeeId}/cost-center`,
+      {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cost_center: nextSector }),
-      });
-      const body = await response.json().catch(() => null);
-      if (!response.ok) {
-        toast.error(body?.error ?? "Não foi possível alterar o setor.");
-        return;
-      }
-      toast.success("Setor atualizado.");
-      router.refresh();
-    } catch {
-      toast.error("Não foi possível alterar o setor.");
-    } finally {
-      setSavingSector(false);
-    }
+      },
+      { success: "Setor atualizado.", error: "Não foi possível alterar o setor." }
+    );
+    if (ok) router.refresh();
+    setSavingSector(false);
   }
 
   return (

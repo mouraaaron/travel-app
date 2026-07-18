@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireApiAdmin } from "@/lib/api-auth";
 import { toTravelRequest } from "@/lib/requests-mapper";
 import type { TravelRequestEvent } from "@/lib/types";
 
@@ -11,21 +11,9 @@ const rejectSchema = z.object({
 });
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  }
-
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (!profile || profile.role !== "admin") {
-    return NextResponse.json(
-      { error: "Apenas administradores podem rejeitar solicitações." },
-      { status: 403 }
-    );
-  }
+  const auth = await requireApiAdmin("Apenas administradores podem rejeitar solicitações.");
+  if (auth.response) return auth.response;
+  const { supabase, user } = auth;
 
   const body = await request.json().catch(() => null);
   const parsed = rejectSchema.safeParse(body);

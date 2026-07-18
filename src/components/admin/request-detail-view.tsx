@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TriangleAlert } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -18,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { PolicyBadges } from "@/components/trip/policy-badges";
 import { RequestStatusBadge } from "@/components/trip/request-status-badge";
 import { getTravelRequestTimelineLabel } from "@/lib/badge-variants";
+import { mutateWithToast } from "@/lib/client-mutation";
 import { formatCurrency, formatDate, formatDateTime, getRouteLabel } from "@/lib/offer-format";
 import type { AdminQueueRequest } from "@/lib/requests-mapper";
 
@@ -42,41 +42,31 @@ export function AdminRequestDetailView({ request }: { request: AdminQueueRequest
 
   async function handleApprove() {
     setApproving(true);
-    try {
-      const response = await fetch(`/api/admin/requests/${request.id}/approve`, { method: "POST" });
-      const body = await response.json().catch(() => null);
-      if (!response.ok) {
-        toast.error(body?.error ?? "Não foi possível aprovar a solicitação.");
-        return;
-      }
-      router.refresh();
-    } catch {
-      toast.error("Não foi possível aprovar a solicitação.");
-    } finally {
-      setApproving(false);
-    }
+    const { ok } = await mutateWithToast(
+      `/api/admin/requests/${request.id}/approve`,
+      { method: "POST" },
+      { error: "Não foi possível aprovar a solicitação." }
+    );
+    if (ok) router.refresh();
+    setApproving(false);
   }
 
   async function handleRejectConfirm() {
     setRejecting(true);
-    try {
-      const response = await fetch(`/api/admin/requests/${request.id}/reject`, {
+    const { ok } = await mutateWithToast(
+      `/api/admin/requests/${request.id}/reject`,
+      {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: rejectReason }),
-      });
-      const body = await response.json().catch(() => null);
-      if (!response.ok) {
-        toast.error(body?.error ?? "Não foi possível rejeitar a solicitação.");
-        return;
-      }
+      },
+      { error: "Não foi possível rejeitar a solicitação." }
+    );
+    if (ok) {
       setRejectOpen(false);
       router.refresh();
-    } catch {
-      toast.error("Não foi possível rejeitar a solicitação.");
-    } finally {
-      setRejecting(false);
     }
+    setRejecting(false);
   }
 
   return (

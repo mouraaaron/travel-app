@@ -7,7 +7,6 @@ import { SIDEBAR_PIN_STORAGE_KEY } from "./sidebar-constants";
 export interface UseSideMenuResult {
   isOpen: boolean;
   pinned: boolean;
-  isPinnable: boolean;
   showPinButton: boolean;
   setHovering: (value: boolean) => void;
   togglePinned: () => void;
@@ -52,5 +51,5 @@ export function useSideMenu(): UseSideMenuResult {
 
   const { isOpen, isPinnable } = deriveSideMenuState({ tier, pinned, hovering });
 
-  return { isOpen, pinned, isPinnable, showPinButton: isPinnable, setHovering, togglePinned };
+  return { isOpen, pinned, showPinButton: isPinnable, setHovering, togglePinned };
 }

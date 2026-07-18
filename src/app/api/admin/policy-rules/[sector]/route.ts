@@ -1,27 +1,14 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireApiAdmin } from "@/lib/api-auth";
 import { SECTORS } from "@/lib/badge-variants";
 
 export async function PATCH(request: Request, { params }: { params: { sector: string } }) {
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  }
-
-  const { data: adminProfile } = await supabase
-    .from("profiles")
-    .select("role, organization_id")
-    .eq("id", user.id)
-    .single();
-  if (!adminProfile || adminProfile.role !== "admin") {
-    return NextResponse.json(
-      { error: "Apenas administradores podem alterar a política de viagem." },
-      { status: 403 }
-    );
-  }
+  const auth = await requireApiAdmin(
+    "Apenas administradores podem alterar a política de viagem.",
+    "role, organization_id"
+  );
+  if (auth.response) return auth.response;
+  const { supabase, adminProfile } = auth;
 
   if (!SECTORS.includes(params.sector as (typeof SECTORS)[number])) {
     return NextResponse.json({ error: "Setor inválido." }, { status: 400 });

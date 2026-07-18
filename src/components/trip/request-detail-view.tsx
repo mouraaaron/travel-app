@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -17,6 +16,7 @@ import {
 import { PolicyBadges } from "@/components/trip/policy-badges";
 import { RequestStatusBadge } from "@/components/trip/request-status-badge";
 import { getTravelRequestTimelineLabel, SECTOR_LABELS, type Sector } from "@/lib/badge-variants";
+import { mutateWithToast } from "@/lib/client-mutation";
 import { formatCurrency, formatDate, formatDateTime, getRouteLabel } from "@/lib/offer-format";
 import { maskEmail, maskGivenName, maskPhone } from "@/lib/passenger-masking";
 import type { TravelRequest } from "@/lib/types";
@@ -41,15 +41,16 @@ export function RequestDetailView({ request }: { request: TravelRequest }) {
 
   async function handleCancelConfirm() {
     setCancelling(true);
-    const response = await fetch(`/api/requests/${request.id}/cancel`, { method: "POST" });
-    const body = await response.json().catch(() => null);
-    setCancelling(false);
-    if (!response.ok) {
-      toast.error(body?.error ?? "Não foi possível cancelar a solicitação.");
-      return;
+    const { ok } = await mutateWithToast(
+      `/api/requests/${request.id}/cancel`,
+      { method: "POST" },
+      { error: "Não foi possível cancelar a solicitação." }
+    );
+    if (ok) {
+      setCancelOpen(false);
+      router.refresh();
     }
-    setCancelOpen(false);
-    router.refresh();
+    setCancelling(false);
   }
 
   return (

@@ -1,4 +1,5 @@
-import type { DuffelPolicyDefaults } from "./policy";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { DUFFEL_POLICY_DEFAULTS, type DuffelPolicyDefaults } from "./policy";
 import type { Sector } from "./badge-variants";
 
 export interface PolicyRuleRow {
@@ -19,4 +20,18 @@ export function toDuffelPolicyDefaults(row: PolicyRuleRow): DuffelPolicyDefaults
     longHaulCabinHours: row.long_haul_cabin_hours,
     costFlagBRL: row.cost_flag_brl,
   };
+}
+
+export async function getPolicyDefaults(
+  supabase: SupabaseClient,
+  organizationId: string,
+  sector: string
+): Promise<DuffelPolicyDefaults> {
+  const { data: ruleRow } = await supabase
+    .from("policy_rules")
+    .select("*")
+    .eq("organization_id", organizationId)
+    .eq("sector", sector)
+    .single();
+  return ruleRow ? toDuffelPolicyDefaults(ruleRow as PolicyRuleRow) : DUFFEL_POLICY_DEFAULTS;
 }

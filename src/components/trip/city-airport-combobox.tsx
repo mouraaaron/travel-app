@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useId, useState } from "react";
 import { findAirportByCode, type AirportOption } from "@/lib/airports";
 import { usePlaceSuggestions } from "@/lib/use-place-suggestions";
 import { cn } from "@/lib/utils";
@@ -21,7 +21,6 @@ export function CityAirportCombobox({
   const inputId = useId();
   const [query, setQuery] = useState(() => findAirportByCode(value)?.label ?? value);
   const [open, setOpen] = useState(false);
-  const blurTimeout = useRef<ReturnType<typeof setTimeout>>();
 
   const { options, isLoading } = usePlaceSuggestions(query, open);
 
@@ -51,7 +50,7 @@ export function CityAirportCombobox({
           }}
           onFocus={() => setOpen(true)}
           onBlur={() => {
-            blurTimeout.current = setTimeout(() => setOpen(false), 150);
+            setTimeout(() => setOpen(false), 150);
           }}
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:text-sm"
         />

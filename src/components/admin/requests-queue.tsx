@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Inbox, Search } from "lucide-react";
-import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RequestStatusBadge } from "@/components/trip/request-status-badge";
 import { getDuffelFlagBadges, getDuffelPolicyBadge } from "@/lib/badge-variants";
 import { filterRequestsForQueue, type AdminQueueTab } from "@/lib/admin-requests";
+import { mutateWithToast } from "@/lib/client-mutation";
 import { formatCurrency, formatDate, getRouteLabel } from "@/lib/offer-format";
 import { cn, initialsFromName } from "@/lib/utils";
 import type { AdminQueueRequest } from "@/lib/requests-mapper";
@@ -31,19 +31,13 @@ export function RequestsQueue({ requests }: { requests: AdminQueueRequest[] }) {
 
   async function handleQuickApprove(id: string) {
     setApprovingId(id);
-    try {
-      const response = await fetch(`/api/admin/requests/${id}/approve`, { method: "POST" });
-      const body = await response.json().catch(() => null);
-      if (!response.ok) {
-        toast.error(body?.error ?? "Não foi possível aprovar a solicitação.");
-        return;
-      }
-      router.refresh();
-    } catch {
-      toast.error("Não foi possível aprovar a solicitação.");
-    } finally {
-      setApprovingId(null);
-    }
+    const { ok } = await mutateWithToast(
+      `/api/admin/requests/${id}/approve`,
+      { method: "POST" },
+      { error: "Não foi possível aprovar a solicitação." }
+    );
+    if (ok) router.refresh();
+    setApprovingId(null);
   }
 
   return (

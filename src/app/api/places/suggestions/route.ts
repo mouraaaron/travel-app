@@ -1,19 +1,14 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireApiUser } from "@/lib/api-auth";
 import { suggestPlaces } from "@/lib/duffel/client";
 import { searchAirports, type AirportOption } from "@/lib/airports";
 
 const querySchema = z.string().trim().min(2);
 
 export async function GET(request: Request) {
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  }
+  const auth = await requireApiUser();
+  if (auth.response) return auth.response;
 
   const { searchParams } = new URL(request.url);
   const parsed = querySchema.safeParse(searchParams.get("query"));

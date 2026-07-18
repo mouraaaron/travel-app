@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireApiUser } from "@/lib/api-auth";
 import { DuffelSearchError, searchFlights } from "@/lib/duffel/client";
 import type { SearchCriteria } from "@/lib/types";
 
@@ -28,13 +28,8 @@ const searchCriteriaSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  }
+  const auth = await requireApiUser();
+  if (auth.response) return auth.response;
 
   const body = await request.json().catch(() => null);
   const parsed = searchCriteriaSchema.safeParse(body);

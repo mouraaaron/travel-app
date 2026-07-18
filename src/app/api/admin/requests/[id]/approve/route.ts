@@ -1,26 +1,14 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireApiAdmin } from "@/lib/api-auth";
 import { toTravelRequest } from "@/lib/requests-mapper";
 import type { TravelRequestEvent } from "@/lib/types";
 
 const APPROVABLE_STATUSES = ["pending_admin", "needs_review"] as const;
 
 export async function POST(_request: Request, { params }: { params: { id: string } }) {
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  }
-
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (!profile || profile.role !== "admin") {
-    return NextResponse.json(
-      { error: "Apenas administradores podem aprovar solicitações." },
-      { status: 403 }
-    );
-  }
+  const auth = await requireApiAdmin("Apenas administradores podem aprovar solicitações.");
+  if (auth.response) return auth.response;
+  const { supabase, user } = auth;
 
   const { data: existing } = await supabase
     .from("requests")

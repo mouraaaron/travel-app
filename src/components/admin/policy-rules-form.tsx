@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SECTOR_LABELS } from "@/lib/badge-variants";
+import { mutateWithToast } from "@/lib/client-mutation";
 import type { PolicyRuleRow } from "@/lib/policy-rules";
 
 function SectorPolicyCard({ rule }: { rule: PolicyRuleRow }) {
@@ -22,24 +22,17 @@ function SectorPolicyCard({ rule }: { rule: PolicyRuleRow }) {
 
   async function handleSave() {
     setSaving(true);
-    try {
-      const response = await fetch(`/api/admin/policy-rules/${rule.sector}`, {
+    const { ok } = await mutateWithToast(
+      `/api/admin/policy-rules/${rule.sector}`,
+      {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
-      });
-      const body = await response.json().catch(() => null);
-      if (!response.ok) {
-        toast.error(body?.error ?? "Não foi possível salvar a política.");
-        return;
-      }
-      toast.success("Política atualizada.");
-      router.refresh();
-    } catch {
-      toast.error("Não foi possível salvar a política.");
-    } finally {
-      setSaving(false);
-    }
+      },
+      { success: "Política atualizada.", error: "Não foi possível salvar a política." }
+    );
+    if (ok) router.refresh();
+    setSaving(false);
   }
 
   return (

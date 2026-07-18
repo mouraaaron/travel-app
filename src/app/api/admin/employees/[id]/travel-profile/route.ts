@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireApiAdmin } from "@/lib/api-auth";
 
 const travelProfileSchema = z.object({
   origin_airport_code: z.string().length(3),
@@ -13,25 +13,11 @@ const travelProfileSchema = z.object({
 });
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  }
-
-  const { data: adminProfile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (!adminProfile || adminProfile.role !== "admin") {
-    return NextResponse.json(
-      { error: "Apenas administradores podem alterar o perfil de viagem de um funcionário." },
-      { status: 403 }
-    );
-  }
+  const auth = await requireApiAdmin(
+    "Apenas administradores podem alterar o perfil de viagem de um funcionário."
+  );
+  if (auth.response) return auth.response;
+  const { supabase } = auth;
 
   const body = await request.json().catch(() => null);
   const parsed = travelProfileSchema.safeParse(body);

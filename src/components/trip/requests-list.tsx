@@ -4,10 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plane, Plus } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { RequestStatusBadge } from "@/components/trip/request-status-badge";
+import { mutateWithToast } from "@/lib/client-mutation";
 import { formatCurrency, formatDate, getRouteLabel } from "@/lib/offer-format";
 import type { TravelRequest, TravelRequestStatus } from "@/lib/types";
 
@@ -39,14 +39,13 @@ export function RequestsList({ requests }: { requests: TravelRequest[] }) {
 
   async function handleCancel(id: string) {
     setCancellingId(id);
-    const response = await fetch(`/api/requests/${id}/cancel`, { method: "POST" });
-    const body = await response.json().catch(() => null);
+    const { ok } = await mutateWithToast(
+      `/api/requests/${id}/cancel`,
+      { method: "POST" },
+      { error: "Não foi possível cancelar a solicitação." }
+    );
+    if (ok) router.refresh();
     setCancellingId(null);
-    if (!response.ok) {
-      toast.error(body?.error ?? "Não foi possível cancelar a solicitação.");
-      return;
-    }
-    router.refresh();
   }
 
   return (

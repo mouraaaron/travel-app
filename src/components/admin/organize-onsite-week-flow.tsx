@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TripDatesPopover } from "@/components/trip/trip-dates-popover";
 import { parseFormDate } from "@/components/trip/trip-dates-popover-utils";
 import { SECTOR_LABELS, SECTORS, type Sector } from "@/lib/badge-variants";
+import { mutateWithToast } from "@/lib/client-mutation";
 import type { OnsiteWeekPreviewEmployee } from "@/lib/onsite-weeks";
 
 type Step = "form" | "review";
@@ -46,28 +47,24 @@ export function OrganizeOnsiteWeekFlow() {
     }
 
     setLoadingPreview(true);
-    try {
-      const response = await fetch("/api/admin/onsite-weeks/preview", {
+    const { ok, body } = await mutateWithToast(
+      "/api/admin/onsite-weeks/preview",
+      {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sector }),
-      });
-      const body = await response.json().catch(() => null);
-      if (!response.ok) {
-        toast.error(body?.error ?? "Não foi possível carregar os funcionários do setor.");
-        return;
-      }
-      const previewEmployees = body.employees as OnsiteWeekPreviewEmployee[];
+      },
+      { error: "Não foi possível carregar os funcionários do setor." }
+    );
+    if (ok) {
+      const previewEmployees = (body?.employees ?? []) as OnsiteWeekPreviewEmployee[];
       setEmployees(previewEmployees);
       setSelected(
         Object.fromEntries(previewEmployees.map((employee) => [employee.id, employee.default_checked]))
       );
       setStep("review");
-    } catch {
-      toast.error("Não foi possível carregar os funcionários do setor.");
-    } finally {
-      setLoadingPreview(false);
     }
+    setLoadingPreview(false);
   }
 
   async function handleConfirm() {

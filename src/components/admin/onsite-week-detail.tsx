@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getOnsiteWeekStatusBadge, getSectorBadge, SECTOR_LABELS } from "@/lib/badge-variants";
+import { mutateWithToast } from "@/lib/client-mutation";
 import { formatCurrency, formatDate } from "@/lib/offer-format";
 import type { OnsiteWeek } from "@/lib/onsite-weeks";
 
@@ -60,43 +60,31 @@ export function OnsiteWeekDetail({
 
   async function handleRetry() {
     setRetrying(true);
-    try {
-      const response = await fetch(`/api/admin/onsite-weeks/${onsiteWeek.id}/retry`, {
+    const { ok } = await mutateWithToast(
+      `/api/admin/onsite-weeks/${onsiteWeek.id}/retry`,
+      {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ employee_ids: failed.map((o) => o.employee_id) }),
-      });
-      const body = await response.json().catch(() => null);
-      if (!response.ok) {
-        toast.error(body?.error ?? "Não foi possível tentar novamente.");
-        return;
-      }
-      toast.success("Tentativa concluída.");
-      router.refresh();
-    } catch {
-      toast.error("Não foi possível tentar novamente.");
-    } finally {
-      setRetrying(false);
-    }
+      },
+      { success: "Tentativa concluída.", error: "Não foi possível tentar novamente." }
+    );
+    if (ok) router.refresh();
+    setRetrying(false);
   }
 
   async function handleCancelConfirm() {
     setCancelling(true);
-    try {
-      const response = await fetch(`/api/admin/onsite-weeks/${onsiteWeek.id}/cancel`, { method: "POST" });
-      const body = await response.json().catch(() => null);
-      if (!response.ok) {
-        toast.error(body?.error ?? "Não foi possível cancelar a semana presencial.");
-        return;
-      }
-      toast.success("Semana presencial cancelada.");
+    const { ok } = await mutateWithToast(
+      `/api/admin/onsite-weeks/${onsiteWeek.id}/cancel`,
+      { method: "POST" },
+      { success: "Semana presencial cancelada.", error: "Não foi possível cancelar a semana presencial." }
+    );
+    if (ok) {
       setCancelOpen(false);
       router.refresh();
-    } catch {
-      toast.error("Não foi possível cancelar a semana presencial.");
-    } finally {
-      setCancelling(false);
     }
+    setCancelling(false);
   }
 
   return (
