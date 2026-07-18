@@ -20,6 +20,7 @@ export function DesktopSidebar({ fullName, role }: { fullName: string; role: "em
   const initials = initialsFromName(fullName);
   const isAdmin = role === "admin";
   const { isOpen, pinned, showPinButton, setHovering, togglePinned } = useSideMenu();
+  const isPinnedOpen = pinned && showPinButton;
   const shouldReduceMotion = useReducedMotion();
   const transition = {
     duration: shouldReduceMotion ? 0 : SIDEBAR_TRANSITION_DURATION,
@@ -50,7 +51,14 @@ export function DesktopSidebar({ fullName, role }: { fullName: string; role: "em
   }
 
   return (
-    <div className="sticky top-0 hidden h-screen w-16 shrink-0 lg:block">
+    // O wrapper sticky cria um stacking context próprio, então o z-index
+    // precisa estar aqui (nível da página) — um z-index só no aside interno
+    // não compete com conteúdo posicionado (avatares, tabs) e ele vaza por cima.
+    <motion.div
+      animate={{ width: isPinnedOpen ? SIDEBAR_EXPANDED_WIDTH : SIDEBAR_COLLAPSED_WIDTH }}
+      transition={transition}
+      className="sticky top-0 z-30 hidden h-screen w-16 shrink-0 lg:block"
+    >
       <motion.aside
         onMouseEnter={() => setHovering(true)}
         onMouseLeave={() => setHovering(false)}
@@ -58,7 +66,7 @@ export function DesktopSidebar({ fullName, role }: { fullName: string; role: "em
         transition={transition}
         className={cn(
           "group absolute inset-y-0 left-0 z-20 overflow-hidden bg-sidebar text-sidebar-foreground transition-shadow duration-200",
-          isOpen && "shadow-[16px_0_40px_rgba(0,0,0,0.35)]"
+          isOpen && !isPinnedOpen && "shadow-[16px_0_40px_rgba(0,0,0,0.35)]"
         )}
       >
         <div className="flex h-full w-[248px] flex-col">
@@ -150,6 +158,6 @@ export function DesktopSidebar({ fullName, role }: { fullName: string; role: "em
           </div>
         </div>
       </motion.aside>
-    </div>
+    </motion.div>
   );
 }
