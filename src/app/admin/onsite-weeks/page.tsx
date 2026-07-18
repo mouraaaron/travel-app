@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { toOnsiteWeek, type OnsiteWeekRow } from "@/lib/onsite-weeks-mapper";
+import type { OnsiteWeek } from "@/lib/onsite-weeks";
 import { OnsiteWeeksList } from "@/components/admin/onsite-weeks-list";
 
 export default async function AdminOnsiteWeeksPage() {
@@ -9,7 +9,7 @@ export default async function AdminOnsiteWeeksPage() {
     .select("*")
     .order("created_at", { ascending: false });
 
-  const onsiteWeeks = ((rows ?? []) as OnsiteWeekRow[]).map(toOnsiteWeek);
+  const onsiteWeeks = (rows ?? []) as OnsiteWeek[];
 
   return <OnsiteWeeksList onsiteWeeks={onsiteWeeks} />;
 }

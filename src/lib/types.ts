@@ -36,7 +36,7 @@ export interface OfferOwner {
   brand_color: string;
 }
 
-export interface OfferSegmentBaggage {
+interface OfferSegmentBaggage {
   type: "carry_on" | "checked";
   quantity: number;
 }
@@ -77,7 +77,7 @@ export interface OfferConditions {
   change_before_departure: OfferConditionDetail;
 }
 
-export interface AvailableService {
+interface AvailableService {
   type: string;
   title: string;
   total_amount: string;
@@ -106,7 +106,7 @@ export interface SearchCriteria {
 export type PassengerTitle = "mr" | "mrs" | "ms" | "miss" | "dr";
 export type PassengerGender = "m" | "f";
 
-export interface IdentityDocument {
+interface IdentityDocument {
   type: "passport";
   unique_identifier: string;
   issuing_country_code: string;
@@ -178,7 +178,7 @@ export interface TravelRequestEvent {
   note?: string;
 }
 
-export interface DuffelPolicyViolationRecord {
+interface DuffelPolicyViolationRecord {
   rule_id: string;
   message: string;
   field: string;

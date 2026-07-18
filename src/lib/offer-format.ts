@@ -24,6 +24,20 @@ export function formatDuration(iso: string): string {
   return `${hours}h ${minutes}min`;
 }
 
+export function parseIsoDurationHours(iso: string): number {
+  const match = /^PT(?:(\d+)H)?(?:(\d+)M)?$/.exec(iso);
+  if (!match) return 0;
+  const hours = match[1] ? Number(match[1]) : 0;
+  const minutes = match[2] ? Number(match[2]) : 0;
+  return hours + minutes / 60;
+}
+
+export function isRoundTrip(slices: Array<{ origin: string; destination: string }>): boolean {
+  const first = slices[0];
+  const last = slices[slices.length - 1];
+  return slices.length === 2 && last?.destination === first?.origin;
+}
+
 export function formatTimeRange(departingAt: string, arrivingAt: string): string {
   const formatter = new Intl.DateTimeFormat("pt-BR", {
     hour: "2-digit",
@@ -56,10 +70,9 @@ export function getRouteLabel(
 ): { origin: string; destination: string } {
   const first = slices[0];
   const last = slices[slices.length - 1];
-  const isRoundTrip = slices.length === 2 && last?.destination === first?.origin;
   return {
     origin: first?.origin ?? "",
-    destination: isRoundTrip ? (first?.destination ?? "") : (last?.destination ?? ""),
+    destination: isRoundTrip(slices) ? (first?.destination ?? "") : (last?.destination ?? ""),
   };
 }
 

@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { toEmployee, type EmployeeRow } from "@/lib/employees-mapper";
+import type { Employee } from "@/lib/employees";
 import { EmployeesTable } from "@/components/admin/employees-table";
 import { EmptyState } from "@/components/ui/empty-state";
 
@@ -10,7 +10,7 @@ export default async function AdminEmployeesPage() {
     .select("id, full_name, email, role, status, cost_center, created_at")
     .order("full_name", { ascending: true });
 
-  const employees = ((rows ?? []) as EmployeeRow[]).map(toEmployee);
+  const employees = (rows ?? []) as Employee[];
 
   return (
     <div className="flex flex-col gap-5">

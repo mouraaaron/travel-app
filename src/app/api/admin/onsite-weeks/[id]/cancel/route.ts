@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { toOnsiteWeek, type OnsiteWeekRow } from "@/lib/onsite-weeks-mapper";
+import type { OnsiteWeek } from "@/lib/onsite-weeks";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { TravelRequestEvent } from "@/lib/types";
 
@@ -65,7 +65,7 @@ export async function POST(_request: Request, { params }: { params: { id: string
   }
 
   return NextResponse.json({
-    onsite_week: toOnsiteWeek(updatedWeek as OnsiteWeekRow),
+    onsite_week: updatedWeek as OnsiteWeek,
     cancelled_requests: (openRequests ?? []).length,
   });
 }

@@ -1,3 +1,4 @@
+import { isRoundTrip, parseIsoDurationHours } from "../offer-format";
 import type { CabinClass, FlightOffer, OfferConditionDetail, OfferSegment, OfferSlice, SearchCriteria } from "../types";
 import type { DuffelRawConditionDetail, DuffelRawOffer, DuffelRawSlice } from "./types";
 
@@ -13,14 +14,6 @@ function mapConditionDetail(
       : undefined,
     penalty_currency: raw.penalty_amount ? "BRL" : undefined,
   };
-}
-
-function parseDurationHours(iso: string): number {
-  const match = /^PT(?:(\d+)H)?(?:(\d+)M)?$/.exec(iso);
-  if (!match) return 0;
-  const hours = match[1] ? Number(match[1]) : 0;
-  const minutes = match[2] ? Number(match[2]) : 0;
-  return hours + minutes / 60;
 }
 
 function mapSlice(raw: DuffelRawSlice): OfferSlice {
@@ -60,10 +53,10 @@ export function mapDuffelOfferToFlightOffer(
   const slices = raw.slices.map(mapSlice);
   const firstSlice = slices[0];
   const lastSlice = slices[slices.length - 1];
-  const isRoundTrip = slices.length === 2 && lastSlice?.destination === firstSlice?.origin;
+  const roundTrip = isRoundTrip(slices);
 
   const longestSegmentHours = slices.reduce(
-    (max, slice) => Math.max(max, parseDurationHours(slice.duration)),
+    (max, slice) => Math.max(max, parseIsoDurationHours(slice.duration)),
     0
   );
 
@@ -74,10 +67,10 @@ export function mapDuffelOfferToFlightOffer(
     id: raw.id,
     mode: "flight",
     origin: firstSlice?.origin ?? criteria.slices[0]?.origin ?? "",
-    destination: isRoundTrip ? (firstSlice?.destination ?? "") : (lastSlice?.destination ?? ""),
+    destination: roundTrip ? (firstSlice?.destination ?? "") : (lastSlice?.destination ?? ""),
     destinationCountry: raw.slices[0]?.destination.iata_country_code ?? "",
     departureAt: firstSlice?.segments[0]?.departing_at ?? "",
-    returnAt: isRoundTrip ? lastSlice?.segments[0]?.departing_at : undefined,
+    returnAt: roundTrip ? lastSlice?.segments[0]?.departing_at : undefined,
     cabinClass,
     airline: raw.owner.name,
     stops: (firstSlice?.segments.length ?? 1) - 1,

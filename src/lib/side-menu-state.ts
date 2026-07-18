@@ -1,5 +1,5 @@
-export const SIDEBAR_TABLET_BREAKPOINT = 1024;
-export const SIDEBAR_PIN_BREAKPOINT = 1367;
+const SIDEBAR_TABLET_BREAKPOINT = 1024;
+const SIDEBAR_PIN_BREAKPOINT = 1367;
 
 export type SideMenuTier = "mobile" | "tablet" | "desktop";
 

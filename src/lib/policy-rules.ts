@@ -1,4 +1,3 @@
-// travel-app/src/lib/policy-rules.ts
 import type { DuffelPolicyDefaults } from "./policy";
 import type { Sector } from "./badge-variants";
 

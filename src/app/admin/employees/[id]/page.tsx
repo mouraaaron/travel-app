@@ -8,7 +8,7 @@ import { EmployeeTravelProfileForm } from "@/components/admin/employee-travel-pr
 import { NotFoundState } from "@/components/layout/not-found-state";
 import { getEmployeeStatusBadge, getRoleBadge, getSectorBadge } from "@/lib/badge-variants";
 import { outOfPolicyByEmployee, spendByEmployee } from "@/lib/admin-analytics";
-import { toEmployee, type EmployeeRow } from "@/lib/employees-mapper";
+import type { Employee } from "@/lib/employees";
 import { formatDate } from "@/lib/offer-format";
 import { toAdminQueueRequest, type RequestRowWithEmployee } from "@/lib/requests-mapper";
 import { getCurrentProfile } from "@/lib/session";
@@ -38,7 +38,7 @@ export default async function AdminEmployeeDetailPage({ params }: { params: { id
     );
   }
 
-  const employee = toEmployee(employeeRow as EmployeeRow);
+  const employee = employeeRow as Employee;
 
   const { data: requestRows } = await supabase
     .from("requests")

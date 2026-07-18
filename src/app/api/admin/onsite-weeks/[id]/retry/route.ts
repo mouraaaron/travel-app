@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { DUFFEL_POLICY_DEFAULTS } from "@/lib/policy";
 import { toDuffelPolicyDefaults, type PolicyRuleRow } from "@/lib/policy-rules";
-import { deriveOnsiteWeekStatus, mergeOnsiteWeekOutcomes, type TravelProfileFields } from "@/lib/onsite-weeks";
-import { toOnsiteWeek, type OnsiteWeekRow } from "@/lib/onsite-weeks-mapper";
+import {
+  deriveOnsiteWeekStatus,
+  mergeOnsiteWeekOutcomes,
+  type OnsiteWeek,
+  type TravelProfileFields,
+} from "@/lib/onsite-weeks";
 import { processOnsiteWeekEmployee, type ProcessEmployeeParams } from "@/lib/onsite-weeks-service";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -90,7 +94,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
   const mergedOutcomes = mergeOnsiteWeekOutcomes(week.employee_outcomes, newOutcomes);
   const successCount = mergedOutcomes.filter((o) => o.status === "created").length;
-  const finalStatus = deriveOnsiteWeekStatus(successCount, mergedOutcomes.length - successCount);
+  const finalStatus = deriveOnsiteWeekStatus(mergedOutcomes.length - successCount);
 
   const { data: updatedWeek } = await supabase
     .from("onsite_weeks")
@@ -100,6 +104,6 @@ export async function POST(request: Request, { params }: { params: { id: string 
     .single();
 
   return NextResponse.json({
-    onsite_week: toOnsiteWeek((updatedWeek ?? { ...week, status: finalStatus, employee_outcomes: mergedOutcomes }) as OnsiteWeekRow),
+    onsite_week: (updatedWeek ?? { ...week, status: finalStatus, employee_outcomes: mergedOutcomes }) as OnsiteWeek,
   });
 }

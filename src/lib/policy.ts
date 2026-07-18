@@ -14,7 +14,7 @@ export const DUFFEL_POLICY_DEFAULTS: DuffelPolicyDefaults = {
   costFlagBRL: 8000,
 };
 
-export interface DuffelPolicyViolation {
+interface DuffelPolicyViolation {
   rule_id: string;
   message: string;
   field: string;
@@ -22,7 +22,7 @@ export interface DuffelPolicyViolation {
   actual: string;
 }
 
-export interface DuffelPolicyFlags {
+interface DuffelPolicyFlags {
   international_travel: boolean;
   cost_above_threshold: boolean;
 }

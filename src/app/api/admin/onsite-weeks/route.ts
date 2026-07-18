@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { DUFFEL_POLICY_DEFAULTS } from "@/lib/policy";
 import { toDuffelPolicyDefaults, type PolicyRuleRow } from "@/lib/policy-rules";
-import { deriveOnsiteWeekStatus, type TravelProfileFields } from "@/lib/onsite-weeks";
-import { toOnsiteWeek, type OnsiteWeekRow } from "@/lib/onsite-weeks-mapper";
+import { deriveOnsiteWeekStatus, type OnsiteWeek, type TravelProfileFields } from "@/lib/onsite-weeks";
 import { processOnsiteWeekEmployee, type ProcessEmployeeParams } from "@/lib/onsite-weeks-service";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -123,7 +122,7 @@ export async function POST(request: Request) {
   );
 
   const successCount = outcomes.filter((o) => o.status === "created").length;
-  const finalStatus = deriveOnsiteWeekStatus(successCount, outcomes.length - successCount);
+  const finalStatus = deriveOnsiteWeekStatus(outcomes.length - successCount);
 
   const { data: updatedWeek } = await supabase
     .from("onsite_weeks")
@@ -134,5 +133,5 @@ export async function POST(request: Request) {
 
   const finalWeek = updatedWeek ?? { ...insertedWeek, status: finalStatus, employee_outcomes: outcomes };
 
-  return NextResponse.json({ onsite_week: toOnsiteWeek(finalWeek as OnsiteWeekRow) }, { status: 201 });
+  return NextResponse.json({ onsite_week: finalWeek as OnsiteWeek }, { status: 201 });
 }

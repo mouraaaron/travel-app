@@ -19,7 +19,7 @@ export interface AirportOption {
   lng: number;
 }
 
-export const CITIES: City[] = [
+const CITIES: City[] = [
   {
     city: "São Paulo",
     country: "Brasil",

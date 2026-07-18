@@ -19,7 +19,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getOnsiteWeekStatusBadge, getSectorBadge, SECTOR_LABELS } from "@/lib/badge-variants";
 import { formatCurrency, formatDate } from "@/lib/offer-format";
-import type { OnsiteWeek } from "@/lib/onsite-weeks-mapper";
+import type { OnsiteWeek } from "@/lib/onsite-weeks";
 
 export interface RequestCost {
   amount: number;

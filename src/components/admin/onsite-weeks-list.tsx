@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getOnsiteWeekStatusBadge, getSectorBadge, SECTOR_LABELS } from "@/lib/badge-variants";
 import { formatDate } from "@/lib/offer-format";
-import type { OnsiteWeek } from "@/lib/onsite-weeks-mapper";
+import type { OnsiteWeek } from "@/lib/onsite-weeks";
 
 export function OnsiteWeeksList({ onsiteWeeks }: { onsiteWeeks: OnsiteWeek[] }) {
   const router = useRouter();

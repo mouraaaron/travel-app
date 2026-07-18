@@ -1,98 +1,6 @@
 import { isInternational } from "./airports";
+import { parseIsoDurationHours } from "./offer-format";
 import type { FlightOffer, OfferSegment, OfferSlice, SearchCriteria } from "./types";
-
-export const MOCK_FLIGHT_OFFERS: FlightOffer[] = [
-  {
-    id: "flt-1",
-    mode: "flight",
-    origin: "GRU",
-    destination: "JFK",
-    destinationCountry: "US",
-    departureAt: "2026-08-10T22:30:00.000Z",
-    returnAt: "2026-08-17T23:10:00.000Z",
-    cabinClass: "economy",
-    airline: "LATAM",
-    stops: 1,
-    refundable: false,
-    totalAmount: 2850,
-    currency: "BRL",
-  },
-  {
-    id: "flt-2",
-    mode: "flight",
-    origin: "GRU",
-    destination: "MIA",
-    destinationCountry: "US",
-    departureAt: "2026-08-12T09:15:00.000Z",
-    returnAt: "2026-08-19T18:40:00.000Z",
-    cabinClass: "business",
-    airline: "American Airlines",
-    stops: 0,
-    refundable: true,
-    totalAmount: 8200,
-    currency: "BRL",
-  },
-  {
-    id: "flt-3",
-    mode: "flight",
-    origin: "GRU",
-    destination: "GIG",
-    destinationCountry: "BR",
-    departureAt: "2026-08-05T07:00:00.000Z",
-    returnAt: "2026-08-06T20:00:00.000Z",
-    cabinClass: "economy",
-    airline: "Azul",
-    stops: 0,
-    refundable: false,
-    totalAmount: 450,
-    currency: "BRL",
-  },
-  {
-    id: "flt-4",
-    mode: "flight",
-    origin: "GRU",
-    destination: "EZE",
-    destinationCountry: "AR",
-    departureAt: "2026-08-20T13:20:00.000Z",
-    returnAt: "2026-08-23T21:00:00.000Z",
-    cabinClass: "premium_economy",
-    airline: "LATAM",
-    stops: 0,
-    refundable: false,
-    totalAmount: 3400,
-    currency: "BRL",
-  },
-  {
-    id: "flt-5",
-    mode: "flight",
-    origin: "GRU",
-    destination: "LIS",
-    destinationCountry: "PT",
-    departureAt: "2026-09-02T21:45:00.000Z",
-    returnAt: "2026-09-12T14:30:00.000Z",
-    cabinClass: "business",
-    airline: "TAP Air Portugal",
-    stops: 1,
-    refundable: true,
-    totalAmount: 6700,
-    currency: "BRL",
-  },
-  {
-    id: "flt-6",
-    mode: "flight",
-    origin: "CGH",
-    destination: "BSB",
-    destinationCountry: "BR",
-    departureAt: "2026-08-14T08:10:00.000Z",
-    returnAt: "2026-08-15T19:50:00.000Z",
-    cabinClass: "economy",
-    airline: "Gol",
-    stops: 0,
-    refundable: false,
-    totalAmount: 620,
-    currency: "BRL",
-  },
-];
 
 interface Carrier {
   iata_code: string;
@@ -101,7 +9,7 @@ interface Carrier {
   aircraft: string[];
 }
 
-export const CARRIERS: Carrier[] = [
+const CARRIERS: Carrier[] = [
   { iata_code: "LA", name: "LATAM", brand_color: "#7c2e12", aircraft: ["Airbus A320", "Boeing 787-9"] },
   { iata_code: "G3", name: "Gol", brand_color: "#d4582f", aircraft: ["Boeing 737 MAX 8"] },
   { iata_code: "AD", name: "Azul", brand_color: "#c54220", aircraft: ["Embraer E195-E2", "Airbus A330-900"] },
@@ -171,10 +79,10 @@ function buildSlice(
       ]
     : [buildSegment(origin, destination, departingAt, 2 + (seed % 5), carrier, seed)];
 
-  const totalHours = segments.reduce((sum, segment) => {
-    const match = /PT(\d+)H(\d+)M/.exec(segment.duration);
-    return sum + (match ? Number(match[1]) + Number(match[2]) / 60 : 0);
-  }, hasStop ? 1.5 : 0);
+  const totalHours = segments.reduce(
+    (sum, segment) => sum + parseIsoDurationHours(segment.duration),
+    hasStop ? 1.5 : 0
+  );
 
   return {
     id: `sli_${seed}`,
@@ -210,10 +118,10 @@ export function generateOffers(criteria: SearchCriteria): FlightOffer[] {
       buildSlice(slice.origin, slice.destination, slice.departure_date, carrier, fareBrand, seed + sliceIndex * 100)
     );
 
-    const totalDurationHours = slices.reduce((sum, slice) => {
-      const match = /PT(\d+)H(\d+)M/.exec(slice.duration);
-      return Math.max(sum, match ? Number(match[1]) + Number(match[2]) / 60 : 0);
-    }, 0);
+    const totalDurationHours = slices.reduce(
+      (max, slice) => Math.max(max, parseIsoDurationHours(slice.duration)),
+      0
+    );
 
     const expiresInMinutes = index === 0 ? 8 : 30 + (seed % 90);
 

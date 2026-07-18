@@ -1,10 +1,10 @@
-export interface DuffelRawPlace {
+interface DuffelRawPlace {
   iata_code: string;
   name: string;
   iata_country_code?: string;
 }
 
-export interface DuffelRawSegmentPassenger {
+interface DuffelRawSegmentPassenger {
   passenger_id: string;
   cabin_class: string;
   baggages: { type: "carry_on" | "checked"; quantity: number }[];

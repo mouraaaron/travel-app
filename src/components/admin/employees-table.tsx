@@ -25,7 +25,7 @@ import {
   type EmployeeStatus,
   type Sector,
 } from "@/lib/badge-variants";
-import type { Employee } from "@/lib/employees-mapper";
+import type { Employee } from "@/lib/employees";
 import { initialsFromName } from "@/lib/utils";
 
 type RoleFilter = "all" | EmployeeRole;

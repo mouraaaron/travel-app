@@ -10,7 +10,7 @@ import type {
   SelectedOfferSnapshot,
 } from "./types";
 
-export const CURITIBA_IATA = "CWB";
+const CURITIBA_IATA = "CWB";
 
 export interface TravelProfileFields {
   origin_airport_code: string | null;
@@ -149,7 +149,7 @@ export function buildOnsiteWeekOfferSnapshot(offer: FlightOffer): SelectedOfferS
   };
 }
 
-export function deriveOnsiteWeekStatus(successCount: number, failureCount: number): OnsiteWeekStatus {
+export function deriveOnsiteWeekStatus(failureCount: number): OnsiteWeekStatus {
   return failureCount > 0 ? "partial" : "completed";
 }
 
@@ -159,6 +159,19 @@ export interface OnsiteWeekEmployeeOutcome {
   status: "created" | "failed";
   request_id?: string;
   error_message?: string;
+}
+
+export interface OnsiteWeek {
+  id: string;
+  organization_id: string;
+  sector: Sector;
+  week_start_date: string;
+  week_end_date: string;
+  status: OnsiteWeekStatus;
+  employee_outcomes: OnsiteWeekEmployeeOutcome[];
+  created_by: string;
+  created_at: string;
+  cancelled_at: string | null;
 }
 
 export function mergeOnsiteWeekOutcomes(

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { SearchCriteria } from "./types";
 
-export const sliceSchema = z
+const sliceSchema = z
   .object({
     origin: z.string().trim().length(3, "Selecione uma origem na lista"),
     destination: z.string().trim().length(3, "Selecione um destino na lista"),

@@ -19,8 +19,8 @@ export function createSupabaseServerClient() {
             );
           } catch {
             // Called during a Server Component render, where cookies are
-            // read-only. The middleware (Task 4) refreshes the session
-            // cookie on the next request, so this is safe to ignore.
+            // read-only. The middleware refreshes the session cookie on the
+            // next request, so this is safe to ignore.
           }
         },
       },

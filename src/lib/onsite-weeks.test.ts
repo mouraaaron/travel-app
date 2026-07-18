@@ -210,10 +210,10 @@ describe("buildOnsiteWeekOfferSnapshot", () => {
 
 describe("deriveOnsiteWeekStatus", () => {
   it("returns completed when there are no failures", () => {
-    expect(deriveOnsiteWeekStatus(5, 0)).toBe("completed");
+    expect(deriveOnsiteWeekStatus(0)).toBe("completed");
   });
   it("returns partial when there is at least one failure", () => {
-    expect(deriveOnsiteWeekStatus(3, 2)).toBe("partial");
+    expect(deriveOnsiteWeekStatus(2)).toBe("partial");
   });
 });
 
